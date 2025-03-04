@@ -1,0 +1,99 @@
+jmp _start
+x:
+"3$"
+
+pow_number_:
+0
+pow_power_:
+0
+pow_:
+    ldva 1
+    loop_pow_:
+        ldb pow_power_
+        testb
+        jz endFun_pow_
+        deb
+        stb pow_power_
+        ldb pow_number_
+        mulab
+        jmp loop_pow_
+    endFun_pow_:
+    ret
+
+atoi_text_:
+0
+atoi_number_:
+0
+atoi_:
+    lda atoi_text_
+    ldab
+    pushb
+    ina
+    sta atoi_text_
+    loop_atoi_:
+        popa
+        testa
+        jz endFun_atoi_
+        pusha
+
+        ldb atoi_text_
+        ldba
+        ldvb 48
+        subab
+
+        lda pow_number_
+        popa
+        lda pow_power_
+        pusha
+        call pow_
+
+        ldb atoi_number_
+        addba
+        stb atoi_number_
+
+        popa
+        dea
+        pusha
+
+        popa
+        testa
+        jz endFun_atoi_
+        pusha
+
+        ldb atoi_text_
+        ldba
+        sh8a
+        ldvb 48
+        subab
+        pusha
+
+        sta pow_number_
+        popa
+        sta pow_power_
+        pusha
+        call pow_
+
+        ldb atoi_number_
+        popa
+        addba
+        stb atoi_number_
+
+        popa
+        dea
+        pusha
+
+        ldb atoi_text_
+        deb
+        stb atoi_text_
+
+    endFun_atoi_:
+    lda atoi_number_
+    ret
+
+_start:
+ldva x
+
+sta atoi_text_
+call atoi_
+outa
+hlt

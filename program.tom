@@ -1,0 +1,11 @@
+%.lib "stdio.ass"%
+%
+x:
+"34$"
+_start:
+lda x
+sta atoi_text_
+call atoi_
+outa
+hlt
+%

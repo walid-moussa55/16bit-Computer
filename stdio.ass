@@ -1,0 +1,171 @@
+printBuff_text_:
+0
+printBuff_:
+    lda printBuff_text_
+    ldab
+    pushb
+    ina
+    sta printBuff_text_
+    loop_printBuff_:
+        popa
+        testa
+        jz endFun_printBuff_
+        pusha
+
+        ldb printBuff_text_
+        ldba
+        print
+        popa
+        dea
+        pusha
+
+        popa
+        testa
+        jz endFun_printBuff_
+        pusha
+        ldb printBuff_text_
+        ldba
+        print8
+        popa
+        dea
+        pusha
+
+        ldb printBuff_text_
+        inb
+        stb printBuff_text_
+        jmp loop_printBuff_
+    endFun_printBuff_:
+    ret
+
+printLine_text_:
+0
+printLine_:
+    lda printLine_text_
+    ldab
+    pushb
+    ina
+    sta printLine_text_
+    loop_printLine_:
+        popa
+        testa
+        jz endFun_printLine_
+        pusha
+
+        ldb printLine_text_
+        ldba
+        print
+        popa
+        dea
+        pusha
+
+        popa
+        testa
+        jz endFun_printLine_
+        pusha
+        ldb printLine_text_
+        ldba
+        print8
+        popa
+        dea
+        pusha
+
+        ldb printLine_text_
+        inb
+        stb printLine_text_
+        jmp loop_printLine_
+    endFun_printLine_:
+    ldva 10
+    print
+    ret
+
+pow_number_:
+0
+pow_power_:
+0
+pow_:
+    ldva 1
+    loop_pow_:
+        ldb pow_power_
+        testb
+        jz endFun_pow_
+        deb
+        stb pow_power_
+        ldb pow_number_
+        mulab
+        jmp loop_pow_
+    endFun_pow_:
+    ret
+
+atoi_text_:
+0
+atoi_number_:
+0
+atoi_:
+    lda atoi_text_
+    ldab
+    pushb
+    ina
+    sta atoi_text_
+    loop_atoi_:
+        popa
+        testa
+        jz endFun_atoi_
+        pusha
+
+        ldb atoi_text_
+        ldba
+        ldvb 48
+        subab
+
+        lda pow_number_
+        popa
+        lda pow_power_
+        pusha
+        call pow_
+
+        ldb atoi_number_
+        addba
+        stb atoi_number_
+
+        popa
+        ina
+        pusha
+
+        popa
+        testa
+        jz endFun_atoi_
+        pusha
+
+        ldb atoi_text_
+        ldba
+        sh8a
+        ldvb 48
+        subab
+
+        lda pow_number_
+        popa
+        lda pow_power_
+        pusha
+        call pow_
+
+        ldb atoi_number_
+        addba
+        stb atoi_number_
+
+        popa
+        ina
+        pusha
+
+        ldb atoi_text_
+        deb
+        stb atoi_text_
+
+    endFun_atoi_:
+    lda atoi_number_
+    ret
+
+
+
+
+
+

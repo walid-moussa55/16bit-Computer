@@ -1,0 +1,62 @@
+| Instruction | Main Goal                | Description                                                                                  |
+|-------------|------------------------- |----------------------------------------------------------------------------------------------|
+| nop         | No operation             | Does nothing; often used for timing or as a placeholder.                                     |
+| lda         | Load Accumulator         | Loads the value from the specified memory address into the accumulator (a).                  |
+| ldb         | Load Register B          | Loads the value from the specified memory address into register b.                           |
+| sta         | Store Accumulator        | Stores the value in the accumulator (a) into the specified memory address.                   |
+| stb         | Store Register B         | Stores the value in register b into the specified memory address.                            |
+| addab       | Add A to B               | Adds the value in the accumulator (a) to register b and stores the result in a.              |
+| addaa       | Add A to A               | Adds the value in the accumulator (a) to itself and stores the result in a.                  |
+| addbb       | Add B to B               | Adds the value in register b to itself and stores the result in b.                           |
+| addba       | Add B to A               | Adds the value in register b to the accumulator (a) and stores the result in b.              |
+| subab       | Subtract B from A        | Subtracts the value in register b from the accumulator (a) and stores the result in a.       |
+| subba       | Subtract A from B        | Subtracts the accumulator (a) from register b and stores the result in b.                    |
+| mulab       | Multiply A by B          | Multiplies the accumulator (a) by register b and stores the result in a.                     |
+| mulaa       | Multiply A by A          | Multiplies the accumulator (a) by itself and stores the result in a.                         |
+| mulbb       | Multiply B by B          | Multiplies register b by itself and stores the result in b.                                  |
+| mulba       | Multiply B by A          | Multiplies register b by the accumulator (a) and stores the result in b.                     |
+| divab       | Divide A by B            | Divides the accumulator (a) by register b and stores the result in a.                        |
+| divba       | Divide B by A            | Divides register b by the accumulator (a) and stores the result in b.                        |
+| nota        | Negate A                 | Performs a bitwise NOT on the value in the accumulator (a).                                  |
+| notb        | Negate B                 | Performs a bitwise NOT on the value in register b.                                           |
+| andab       | AND A with B             | Performs a bitwise AND between the accumulator (a) and register b, stores the result in a.   |
+| andba       | AND B with A             | Performs a bitwise AND between register b and the accumulator (a), stores the result in b.   |
+| orab        | OR A with B              | Performs a bitwise OR between the accumulator (a) and register b, stores the result in a.    |
+| orba        | OR B with A              | Performs a bitwise OR between register b and the accumulator (a), stores the result in b.    |
+| xorab       | XOR A with B             | Performs a bitwise XOR between the accumulator (a) and register b, stores the result in a.   |
+| xoraa       | XOR A with A             | Performs a bitwise XOR between the accumulator (a) and itself, effectively zeroing it out.   |
+| xorbb       | XOR B with B             | Performs a bitwise XOR between register b and itself, effectively zeroing it out.            |
+| xorba       | XOR B with A             | Performs a bitwise XOR between register b and the accumulator (a), stores the result in b.   |
+| shla        | Shift Left A             | Shifts the bits of the accumulator (a) left by one position, effectively multiplying by 2.   |
+| shlb        | Shift Left B             | Shifts the bits of register b left by one position, effectively multiplying by 2.            |
+| shra        | Shift Right A            | Shifts the bits of the accumulator (a) right by one position, effectively dividing by 2.     |
+| shrb        | Shift Right B            | Shifts the bits of register b right by one position, effectively dividing by 2.              |
+| cmpab       | Compare A with B         | Compares the value in the accumulator (a) with register b and sets flags accordingly (zero, carry, equal, unequal, great, less). |
+| cmpba       | Compare B with A         | Compares the value in register b with the accumulator (a) and sets flags accordingly.        |
+| pusha       | Push Accumulator         | Pushes the value in the accumulator (a) onto the stack.                                      |
+| pushb       | Push Register B          | Pushes the value in register b onto the stack.                                               |
+| popa        | Pop to Accumulator       | Pops the top value from the stack into the accumulator (a).                                  |
+| popb        | Pop to Register B        | Pops the top value from the stack into register b.                                           |
+| call        | Call Subroutine          | Saves the current program counter (PC) and jumps to the address of the subroutine.           |
+| ret         | Return from Subroutine   | Returns from the subroutine by jumping to the address saved on the stack.                    |
+| jmp         | Jump                     | Unconditionally jumps to the specified address.                                              |
+| jz          | Jump if Zero             | Jumps to the specified address if the zero flag is set (i.e., the last operation resulted in zero). |
+| jac         | Jump if Arithmetic Carry | Jumps to the specified address if the carry flag is set (i.e., the last arithmetic operation resulted in a carry). |
+| jsc         | Jump if Shift Carry      | Jumps to the specified address if the shift carry flag is set (i.e., the last shift operation resulted in a carry). |
+| je          | Jump if Equal            | Jumps to the specified address if the equal flag is set, indicating a is equal to b.         |
+| jn          | Jump if Not Equal        | Jumps to the specified address if the unequal flag is not set, indicating a is not equal to b. |
+| jl          | Jump if Less             | Jumps to the specified address if the less flag is set, indicating a is less then b.         |
+| jg          | Jump if Greater          | Jumps to the specified address if the great flag is clear, indicating a is great then b.     |
+| outa        | Output Accumulator       | Outputs the value in the accumulator (a) to the output device.                               |
+| outb        | Output Register B        | Outputs the value in register b to the output device.                                        |
+| hlt         | Halt                     | Stops program execution.                                                                     |
+| mvab        | Move A to B              | Moves the value from the accumulator (a) to register b.                                      |
+| mvba        | Move B to A              | Moves the value from register b to the accumulator (a).                                      |
+| mspa        | Move Stack Pointer to A  | Moves the stack pointer (sp) to register a.                                                  |
+| mspb        | Move Stack Pointer to B  | Moves the stack pointer (sp) to register b.                                                  |
+| testa       | Test Accumulator         | Tests the value in the accumulator (a) and sets the flags accordingly (zero).                |
+| testb       | Test Register B          | Tests the value in register b and sets the flags accordingly.                                |
+| ldva        | Load Next Word to A      | Loads the next word from memory into the accumulator (a).                                    |
+| ldvb        | Load Next Word to B      | Loads the next word from memory into register b.                                             |
+| stab        | Store A to Address in B  | Stores the value in the accumulator (a) to the memory location pointed to by register b.     |
+| stba        | Store B to Address in A  | Stores the value in register b to the memory location pointed to by register a.              |
