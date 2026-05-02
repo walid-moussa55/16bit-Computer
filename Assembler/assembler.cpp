@@ -37,7 +37,7 @@ void Preprocessing(const std::string& filename){
             } else {std::cerr << "Error: Expected \"" << std::endl;exit(1);}
             std::ifstream other(name);
             if(!other) {std::cerr<<"this file \""<<name<<"\" not exist!"<<std::endl;exit(1);}
-            std::cout<<"Importing '"<< name <<"' ..."<< std::endl;
+            std::cout<<"Importing '"<< name <<"'"<< std::endl;
             std::stringstream ss;
             ss<<other.rdbuf();
             ss<<"\n";
@@ -104,9 +104,7 @@ void ReadFile(const std::string& filename, std::vector<Instruction_t>& lines, st
             continue;
         }else{
             if(line.find("\"")!= std::string::npos){
-                std::cout<<line<<std::endl;
                 int count = (countWordsInText(line)+1)/2;
-                std::cout<<count<<std::endl;
                 n+= count+1;
                 lines.push_back({line,second});
             }else{
@@ -149,8 +147,8 @@ std::vector<std::string> UnicodeForRAM(const std::vector<Instruction_t> lines, c
         if(Instructions_Dict.find(inst.command)==Instructions_Dict.end()){
             if(inst.command.find("\"") != std::string::npos){
                 Table table = StringToCode(inst.command);
-                std::cout<<"Text count :"<<countWordsInText(inst.command)<<std::endl;
-                std::cout<<"Table size :"<<table.items.size()<<std::endl;
+                // std::cout<<"Text count :"<<countWordsInText(inst.command)<<std::endl;
+                // std::cout<<"Table size :"<<table.items.size()<<std::endl;
                 std::stringstream ss1;
                 ss1<<std::setw(4)<<std::setfill('0')<<std::hex<<countWordsInText(inst.command);
                 buffers.push_back(ss1.str());
@@ -207,8 +205,13 @@ void ParseToRAM(const std::string& filename, const std::vector<std::string>& buf
 
 int main(int argc, char* argv[]){
     std::string fileName = "program.ass";
-    bool isV2Logisim = false;
+    bool isdebug = false;
     if(argc == 2){
+        if (!strcmp(argv[1] , "--debug")) isdebug = true;
+        else fileName = argv[argc - 1];
+    }
+    if(argc == 3){
+        isdebug = (!strcmp(argv[1] , "--debug"));
         fileName = argv[argc-1];
     }
     
@@ -216,8 +219,10 @@ int main(int argc, char* argv[]){
     std::vector<Instruction_t> lines;
     std::unordered_map<std::string, unsigned int> labels;
     ReadFile("tempf.ass",lines, labels);
-    for(auto& lab : labels){
-        std::cout<<lab.first<<"->"<<lab.second<<std::endl;
+    if(isdebug){
+        for(auto& lab : labels){
+            std::cout<<lab.first<<"->"<<lab.second<<std::endl;
+        }
     }
 
     std::vector<std::string> buffers = UnicodeForRAM(lines, labels);
