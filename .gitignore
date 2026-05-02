@@ -1,0 +1,7 @@
+program.ass
+Compiler/*.exe
+Generator/*.exe
+Unicode_CU/*.exe
+Assembler/*.exe
+Computer/ROMs/*
+ram_unicode
