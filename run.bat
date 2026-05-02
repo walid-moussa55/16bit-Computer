@@ -1,28 +1,26 @@
 @echo off
 
-echo Generator Instruction Table and Dictionary...
-g++ ./Generator/generator.cpp -o ./Generator/generator.exe
+@REM echo Generator Instruction Table and Dictionary...
+@REM g++ ./Generator/generator.cpp -o ./Generator/generator.exe
 @REM .\Generator\generator.exe
-pause
+@REM pause
 
-echo Generator CU Unicode...
-g++ ./Unicode_CU/unicode_cu.cpp -o ./Unicode_CU/unicode_cu.exe
+@REM echo Generator CU Unicode...
+@REM g++ ./Unicode_CU/unicode_cu.cpp -o ./Unicode_CU/unicode_cu.exe
 @REM .\Unicode_CU\unicode_cu.exe
+@REM pause
+
+echo Generating Assembly code (Compilation)...
+@REM g++ .\Compiler\compiler.cpp -std=c++17 -o .\Compiler\compiler.exe
+.\Compiler\compiler.exe ./Code/program.tom ./Code/program.ass
 pause
-
-
-@REM Mesure the time to execute .\Assembler\assembler.exe program
-@REM Measure-Command { & ".\Assembler\assembler.exe" }
-
-echo Generating Assembly code...
-g++ .\Compiler\compiler.cpp -std=c++17 -o .\Compiler\compiler.exe
-@REM .\Compiler\compiler.exe 
-pause
-
-@REM Mesure the time to execute .\Compiler\compiler.exe program
-@REM Measure-Command { & ".\Compiler\compiler.exe" }
 
 echo Generating Program RAM Code...
-g++ .\Assembler\assembler.cpp -o .\Assembler\assembler.exe
-@REM .\Assembler\assembler.exe
+@REM g++ .\Assembler\assembler.cpp -o .\Assembler\assembler.exe
+.\Assembler\assembler.exe ./Code/program.ass
 pause
+
+@REM echo Clean up...
+@REM del temp.tom
+@REM del tempf.ass
+@REM del .\\Code\\program.ass

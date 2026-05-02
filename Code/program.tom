@@ -1,0 +1,8 @@
+import "./Code/libs/stdio.tom"
+let x = 0;
+let message = "Yes";
+
+if (x == 0){
+    printNum(25);
+    print(message);
+}

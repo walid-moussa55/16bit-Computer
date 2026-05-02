@@ -1,7 +1,4 @@
-%.lib "stdio.ass"%
-
-let x = 0;
-let message = "Yes";
+%.lib ".\Code\libs\stdio.ass"%
 
 function printNum(number){
     %
@@ -14,9 +11,4 @@ function print(text){
     sta printBuff_text_
     call printBuff_
     %
-}
-
-if (x == 0){
-    printNum(25);
-    print(message);
 }
