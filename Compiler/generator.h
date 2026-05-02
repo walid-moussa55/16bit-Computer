@@ -36,6 +36,7 @@ public:
                     m_opcodes.push_back(stringLabel +":");
                     m_opcodes.push_back("\""+text+"$\"");
                     m_string_Label[text] = stringLabel;
+                    initialValue = stringLabel;
                 }
                 declareGlobVar(std::get<Node_DeclareVar*>(stmt->value)->name, initialValue);
             }else if(std::holds_alternative<Node_DeclareConst*>(stmt->value)){
@@ -220,7 +221,7 @@ private:
                     throw std::runtime_error("Generator Error: Function '" + value->name + "' not found.");
                 }
                 auto paramLabels = m_funcPars.at(value->name);
-                if(!paramLabels.size()) throw std::runtime_error("Generator Error: function '"+ value->name +"' is not defined or parameters are missing.");
+                if(value->args.size() < paramLabels.size()) throw std::runtime_error("Generator Error: function '"+ value->name +"' is not defined or parameters are missing.");
                 if(value->args.size() > paramLabels.size()){
                     throw std::runtime_error("Generator Error: Too many arguments provided for function "+value->name);
                 }
@@ -313,7 +314,7 @@ private:
             }else if constexpr (std::is_same_v<T, Node_CallFunc*>){
                 m_opcodes.push_back("; callfunc");
                 auto paramLabels = m_funcPars.at(value->name);
-                if(!paramLabels.size()) throw std::runtime_error("Generator Error: function '"+ value->name +"' is not defined or parameters are missing.");
+                if(value->args.size() < paramLabels.size()) throw std::runtime_error("Generator Error: function '"+ value->name +"' is not defined or parameters are missing.");
                 if(value->args.size() > paramLabels.size()){
                     throw std::runtime_error("Generator Error: Too many arguments provided for function "+value->name);
                 }
