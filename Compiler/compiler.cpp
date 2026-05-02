@@ -7,6 +7,7 @@
 #include <optional>
 #include <unordered_set>
 #include <cstring>
+#include <filesystem>
 
 
 std::string trim(const std::string& str) {
@@ -47,8 +48,9 @@ void preprocess(const std::string& inputFile, const std::string& outputFile) {
                 std::string importedFile = line.substr(start, end - start);
                 if (includedFiles.find(importedFile) == includedFiles.end()) {
                     includedFiles.insert(importedFile);
-                    std::string importedContent = readFile(importedFile);
-                    tempFile << "// Importing \"" << importedFile << "\"\n";
+                    std::string fullpath = std::filesystem::current_path().string() + "\\" + importedFile;
+                    std::string importedContent = readFile(fullpath);
+                    tempFile << "// Importing \"" << fullpath << "\"\n";
                     tempFile << importedContent << "\n";
                 }
             }
@@ -74,7 +76,7 @@ std::optional<Token_t> getKeyword(const std::string& text){
     else{ return std::nullopt; }
 }
 std::vector<std::optional<Token_t>> tokonize(const std::string& filename){
-    std::ifstream ifile("program.tom");
+    std::ifstream ifile(filename);
     if(!ifile){throw std::runtime_error("This file '"+ filename +"' not found");}
     std::stringstream content_str;
     content_str << ifile.rdbuf();
@@ -175,14 +177,31 @@ std::vector<std::optional<Token_t>> tokonize(const std::string& filename){
 
 int main(int argc, char* argv[]){
     std::string fileName = "program.tom";
+    std::string outFileName = "program.ass";
     bool isdebug = false;
     if(argc == 2){
         if (!strcmp(argv[1] , "--debug")) isdebug = true;
         else fileName = argv[argc - 1];
     }
     if(argc == 3){
-        isdebug = (!strcmp(argv[1] , "--debug"));
-        fileName = argv[argc-1];
+        if (!strcmp(argv[1] , "--debug")) isdebug = true;
+        else if (!strcmp(argv[2] , "--debug")){
+            isdebug = true;
+            fileName = argv[argc-1];
+        }else{
+            fileName = argv[argc-2];
+            outFileName = argv[argc-1];
+        }
+    }
+    if(argc == 4){
+        if(!strcmp(argv[3] , "--debug")){
+            isdebug = true;
+            fileName = argv[argc-2];
+            outFileName = argv[argc-1];
+        }else{
+            fileName = argv[argc-3];
+            outFileName = argv[argc-2];
+        }
     }
     std::vector<std::optional<Token_t>> tokens;
     std::string tempFile = "temp.tom";
@@ -204,7 +223,7 @@ int main(int argc, char* argv[]){
         std::cout<<"Generating Assembly Opcode"<<std::endl;
         if(isdebug) std::cout<<opcode<<std::endl;
 
-        std::ofstream ofile("program.ass");
+        std::ofstream ofile(outFileName);
         ofile << opcode << std::endl;
         ofile.close();
 

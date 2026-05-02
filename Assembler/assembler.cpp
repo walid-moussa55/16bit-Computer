@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#include <filesystem>
 
 #include "instructions_dict.h"
 
@@ -19,10 +20,10 @@ struct Table {
     std::vector<unsigned short> items;
 };
 
-void Preprocessing(const std::string& filename){
+void Preprocessing(const std::string& filename, const std::string& outputfilename = "tempf.ass"){
     std::ifstream ifs(filename);
     if(!ifs){std::cerr<<"Error : This file \""<<filename<<"\" not exist"<<std::endl;exit(1);}
-    std::ofstream tempf("tempf.ass");
+    std::ofstream tempf(outputfilename);
     std::string line;
     tempf<<"jmp _start\n";
     while(getline(ifs,line)){
@@ -35,7 +36,8 @@ void Preprocessing(const std::string& filename){
                     name = line.substr(start + 1, end - start - 1);
                 } else {std::cerr << "Error: Undefined file inside \" \"" << std::endl;exit(1);}
             } else {std::cerr << "Error: Expected \"" << std::endl;exit(1);}
-            std::ifstream other(name);
+            std::string fullpath = std::filesystem::current_path().string() + "\\" + name;
+            std::ifstream other(fullpath);
             if(!other) {std::cerr<<"this file \""<<name<<"\" not exist!"<<std::endl;exit(1);}
             std::cout<<"Importing '"<< name <<"'"<< std::endl;
             std::stringstream ss;
@@ -205,16 +207,32 @@ void ParseToRAM(const std::string& filename, const std::vector<std::string>& buf
 
 int main(int argc, char* argv[]){
     std::string fileName = "program.ass";
+    std::string outFileName = "ram_unicode";
     bool isdebug = false;
     if(argc == 2){
         if (!strcmp(argv[1] , "--debug")) isdebug = true;
         else fileName = argv[argc - 1];
     }
     if(argc == 3){
-        isdebug = (!strcmp(argv[1] , "--debug"));
-        fileName = argv[argc-1];
+        if (!strcmp(argv[1] , "--debug")) isdebug = true;
+        else if (!strcmp(argv[2] , "--debug")){
+            isdebug = true;
+            fileName = argv[argc-1];
+        }else{
+            fileName = argv[argc-2];
+            outFileName = argv[argc-1];
+        }
     }
-    
+    if(argc == 4){
+        if(!strcmp(argv[3] , "--debug")){
+            isdebug = true;
+            fileName = argv[argc-2];
+            outFileName = argv[argc-1];
+        }else{
+            fileName = argv[argc-3];
+            outFileName = argv[argc-2];
+        }
+    }    
     Preprocessing(fileName);
     std::vector<Instruction_t> lines;
     std::unordered_map<std::string, unsigned int> labels;
@@ -226,6 +244,6 @@ int main(int argc, char* argv[]){
     }
 
     std::vector<std::string> buffers = UnicodeForRAM(lines, labels);
-    ParseToRAM("ram_unicode",buffers);
+    ParseToRAM(outFileName,buffers);
     remove("tempf.ass");
 }

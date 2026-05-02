@@ -227,6 +227,8 @@ void code7SEG(const std::string& filename){
 }
 
 int main(){
+    // create folder Computer/ROMs if it doesn't exist
+    system("mkdir Computer\\ROMs");
     UnicodeToROM("./Computer/ROMs/cu_unicode");
     UnicodeToROM2("./Computer/ROMs/cu_unicode2");
     code7SEG("./Computer/ROMs/7_seg");
