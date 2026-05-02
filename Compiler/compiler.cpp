@@ -50,7 +50,7 @@ void preprocess(const std::string& inputFile, const std::string& outputFile) {
                     includedFiles.insert(importedFile);
                     std::string fullpath = std::filesystem::current_path().string() + "\\" + importedFile;
                     std::string importedContent = readFile(fullpath);
-                    tempFile << "// Importing \"" << fullpath << "\"\n";
+                    tempFile << "// Importing \"" << importedFile << "\"\n";
                     tempFile << importedContent << "\n";
                 }
             }
