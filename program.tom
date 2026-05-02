@@ -1,11 +1,22 @@
 %.lib "stdio.ass"%
-%
-x:
-"34$"
-_start:
-lda x
-sta atoi_text_
-call atoi_
-outa
-hlt
-%
+
+let x = 0;
+let message = "Yes";
+
+function printNum(number){
+    %
+    outa
+    %
+}
+
+function print(text){
+    %
+    sta printBuff_text_
+    call printBuff_
+    %
+}
+
+if (x == 0){
+    printNum(25);
+    print(message);
+}

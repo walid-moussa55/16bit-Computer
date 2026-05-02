@@ -19,6 +19,9 @@ g++ .\Compiler\compiler.cpp -std=c++17 -o .\Compiler\compiler.exe
 @REM .\Compiler\compiler.exe 
 pause
 
+@REM Mesure the time to execute .\Compiler\compiler.exe program
+@REM Measure-Command { & ".\Compiler\compiler.exe" }
+
 echo Generating Program RAM Code...
 g++ .\Assembler\assembler.cpp -o .\Assembler\assembler.exe
 @REM .\Assembler\assembler.exe

@@ -8,7 +8,7 @@ public:
     Allocator(size_t bytes)
     : m_size(bytes)
     {
-        std::cout<<"Creating Allocator..."<<std::endl;
+        std::cout<<"Creating Allocator"<<std::endl;
         m_buffer = static_cast<std::byte*>(std::malloc(m_size));
         m_offset = m_buffer;
     }
@@ -30,7 +30,7 @@ public:
     Allocator operator=(const Allocator& other) = delete;
 
     ~Allocator(){
-        std::cout<<"Freeing Allocator..."<<std::endl;
+        std::cout<<"Freeing Allocator"<<std::endl;
         std::free(m_buffer);
     }
 

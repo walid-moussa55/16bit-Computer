@@ -201,7 +201,7 @@ int main(int argc, char* argv[]){
 
         Generator generator(prog);
         std::string opcode = generator.generateOpcodes();
-        std::cout<<"Generating Assembly Opcode..."<<std::endl;
+        std::cout<<"Generating Assembly Opcode"<<std::endl;
         if(isdebug) std::cout<<opcode<<std::endl;
 
         std::ofstream ofile("program.ass");
