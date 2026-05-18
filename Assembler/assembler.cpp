@@ -8,6 +8,7 @@
 #include <cctype>
 #include <cstring>
 #include <filesystem>
+#include <unordered_set>
 
 #include "instructions_dict.h"
 
@@ -20,39 +21,47 @@ struct Table {
     std::vector<unsigned short> items;
 };
 
-void Preprocessing(const std::string& filename, const std::string& outputfilename = "tempf.ass"){
-    std::ifstream ifs(filename);
-    if(!ifs){std::cerr<<"Error : This file \""<<filename<<"\" not exist"<<std::endl;exit(1);}
-    std::ofstream tempf(outputfilename);
-    std::string line;
-    tempf<<"jmp _start\n";
-    while(getline(ifs,line)){
-        if(line.find(".lib")!=std::string::npos){
-            size_t start = line.find('"');
-            size_t end = line.rfind('"');
-            std::string name;
-            if (start != std::string::npos && end != std::string::npos) {
-                if (start != end) { // Correct condition
-                    name = line.substr(start + 1, end - start - 1);
-                } else {std::cerr << "Error: Undefined file inside \" \"" << std::endl;exit(1);}
-            } else {std::cerr << "Error: Expected \"" << std::endl;exit(1);}
-            std::string fullpath = std::filesystem::current_path().string() + "\\" + name;
-            std::ifstream other(fullpath);
-            if(!other) {std::cerr<<"this file \""<<name<<"\" not exist!"<<std::endl;exit(1);}
-            std::cout<<"Importing '"<< name <<"'"<< std::endl;
-            std::stringstream ss;
-            ss<<other.rdbuf();
-            ss<<"\n";
-            line = ss.str();
-            tempf<<line<<"\n";
-        }else{
-            tempf<<line<<"\n";
-        }
-    }
-    ifs.close();
-    tempf.close();
+std::string trim(const std::string& text) {
+    size_t start = text.find_first_not_of(" \t");
+    size_t end = text.find_last_not_of(" \t");
+    return (start == std::string::npos) ? "" : text.substr(start, end - start + 1);
 }
 
+std::unordered_set<std::string> includedFiles;
+
+void PreprocessFile(const std::string& filename, std::ofstream& tempf) {
+    std::ifstream ifs(filename);
+    if (!ifs) { std::cerr << "Error: file \"" << filename << "\" not exist\n"; exit(1); }
+
+    std::string line;
+    while (std::getline(ifs, line)) {
+        std::string trimmed = trim(line);
+        if (trimmed.rfind(".lib", 0) == 0) {
+            size_t start = trimmed.find('"');
+            size_t end = trimmed.rfind('"');
+            if (start == std::string::npos || end == std::string::npos || start == end) {
+                std::cerr << "Error: invalid .lib syntax\n";
+                exit(1);
+            }
+            std::string name = trimmed.substr(start + 1, end - start - 1);
+            std::string fullpath = std::filesystem::current_path().string() + "\\" + name;
+            if (includedFiles.find(name) == includedFiles.end()) {
+                includedFiles.insert(name);
+                std::cout<<"Importing '"<< name <<"'"<< std::endl;
+                tempf << "; --- Importing '"<< name <<"'\n";
+                PreprocessFile(fullpath, tempf);
+            }
+        } else {
+            tempf << line << "\n";
+        }
+    }
+}
+
+void Preprocessing(const std::string& filename, const std::string& outputfilename = "tempf.ass") {
+    std::ofstream tempf(outputfilename);
+    tempf << "jmp _start\n";
+    PreprocessFile(filename, tempf);
+}
 
 int countWordsInText(const std::string& text) {
     int valid_characters = 0;
@@ -63,10 +72,25 @@ int countWordsInText(const std::string& text) {
     return valid_characters;
 }
 
-std::string trim(const std::string& text) {
-    size_t start = text.find_first_not_of(" \t");
-    size_t end = text.find_last_not_of(" \t");
-    return (start == std::string::npos) ? "" : text.substr(start, end - start + 1);
+int getReservedWords(const std::string& text) {
+    std::string trimmed = trim(text);
+    std::string lower = trimmed;
+    std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c){ return std::tolower(c); });
+    if (lower.rfind("resw(", 0) == 0) {
+        size_t open = trimmed.find('(');
+        size_t close = trimmed.rfind(')');
+        if (open == std::string::npos || close == std::string::npos || close <= open + 1) {
+            std::cerr << "Error: invalid resw syntax\n";
+            exit(1);
+        }
+        std::string number = trim(trimmed.substr(open + 1, close - open - 1));
+        if (number.empty() || !std::all_of(number.begin(), number.end(), ::isdigit)) {
+            std::cerr << "Error: invalid resw count\n";
+            exit(1);
+        }
+        return std::stoi(number);
+    }
+    return 0;
 }
 
 std::string splitInstruction(const std::string& line) {
@@ -107,7 +131,11 @@ void ReadFile(const std::string& filename, std::vector<Instruction_t>& lines, st
         }else{
             if(line.find("\"")!= std::string::npos){
                 int count = (countWordsInText(line)+1)/2;
-                n+= count+1;
+                n+= count+2;
+                lines.push_back({line,second});
+            }else if(line.find("resw(")!= std::string::npos || line.find("RESW(")!= std::string::npos){
+                int count = getReservedWords(line);
+                n+= count+2;
                 lines.push_back({line,second});
             }else{
                 std::stringstream ss(line);
@@ -152,11 +180,27 @@ std::vector<std::string> UnicodeForRAM(const std::vector<Instruction_t> lines, c
                 // std::cout<<"Text count :"<<countWordsInText(inst.command)<<std::endl;
                 // std::cout<<"Table size :"<<table.items.size()<<std::endl;
                 std::stringstream ss1;
-                ss1<<std::setw(4)<<std::setfill('0')<<std::hex<<countWordsInText(inst.command);
+                std::stringstream ss2;
+                ss1<<std::setw(4)<<std::setfill('0')<<std::hex<<table.items.size();
+                ss2<<std::setw(4)<<std::setfill('0')<<std::hex<<countWordsInText(inst.command);
                 buffers.push_back(ss1.str());
+                buffers.push_back(ss2.str());
                 for(const unsigned short& item : table.items){
                     std::stringstream buffer;
                     buffer<<std::setw(4)<<std::setfill('0')<<std::hex<<item;
+                    buffers.push_back(buffer.str());
+                }continue;
+            }else if(inst.command.find("resw(")!= std::string::npos || inst.command.find("RESW(")!= std::string::npos) {
+                int count = getReservedWords(inst.command);
+                std::stringstream ss1;
+                std::stringstream ss2;
+                ss1<<std::setw(4)<<std::setfill('0')<<std::hex<<count;
+                ss2<<std::setw(4)<<std::setfill('0')<<std::hex<<0;
+                buffers.push_back(ss1.str());
+                buffers.push_back(ss2.str());
+                for (int i=0;i<count;i++){
+                    std::stringstream buffer;
+                    buffer<<std::setw(4)<<std::setfill('0')<<std::hex<<0;
                     buffers.push_back(buffer.str());
                 }continue;
             }else if(labels.find(inst.command)!=labels.end()){
@@ -217,7 +261,7 @@ int main(int argc, char* argv[]){
         if (!strcmp(argv[1] , "--debug")) isdebug = true;
         else if (!strcmp(argv[2] , "--debug")){
             isdebug = true;
-            fileName = argv[argc-1];
+            fileName = argv[argc-2];
         }else{
             fileName = argv[argc-2];
             outFileName = argv[argc-1];
@@ -226,8 +270,8 @@ int main(int argc, char* argv[]){
     if(argc == 4){
         if(!strcmp(argv[3] , "--debug")){
             isdebug = true;
-            fileName = argv[argc-2];
-            outFileName = argv[argc-1];
+            fileName = argv[argc-3];
+            outFileName = argv[argc-2];
         }else{
             fileName = argv[argc-3];
             outFileName = argv[argc-2];
@@ -239,7 +283,7 @@ int main(int argc, char* argv[]){
     ReadFile("tempf.ass",lines, labels);
     if(isdebug){
         for(auto& lab : labels){
-            std::cout<<lab.first<<"->"<<lab.second<<std::endl;
+            std::cout<<lab.first<<" -> "<<lab.second<<" (0x"<<std::setw(4)<<std::setfill('0')<<std::hex<<lab.second<<")"<<std::dec<<std::endl;
         }
     }
 

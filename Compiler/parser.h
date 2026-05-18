@@ -1,3 +1,4 @@
+#pragma once
 #include <variant>
 
 #include "allocator.h"
@@ -51,6 +52,24 @@ struct Node_CallFunc{
     std::vector<Node_Expression*> args;
 };
 
+struct Node_DeclareTable{
+    std::string name;
+    std::string capacity;
+    std::string length;
+    std::vector<Node_Expression*> items;
+};
+
+struct Node_AssignTabIndx{
+    std::string name;
+    std::string index;
+    Node_Expression* expr;
+};
+
+struct Node_TabIndx{
+    std::string name;
+    Node_Expression* index;
+};
+
 struct Node_Bin{
     Node_Expression* left;
     std::string op;
@@ -58,7 +77,7 @@ struct Node_Bin{
 };
 
 struct Node_Expression{
-    std::variant<Node_Number, Node_String, Node_Ident,Node_Bin*, Node_CallFunc*> value;
+    std::variant<Node_Number, Node_String, Node_Ident, Node_Bin*, Node_CallFunc*, Node_TabIndx*> value;
 };
 
 struct Node_DeclareVar{
@@ -76,8 +95,12 @@ struct Node_AssignVar{
     Node_Expression* expr;
 };
 
+struct Node_Assign{
+    std::variant<Node_AssignVar*, Node_AssignTabIndx*> assign;
+};
+
 struct Node_Stamt{
-    std::variant<Node_DeclareVar*,Node_AssignVar*,Node_CallFunc*,Node_DeclareFunc*,Node_Return*,Node_BlockStamts*,Node_IfStamt*,Node_WhileStamt*,Node_CustomBlock*,Node_DeclareConst*> value;
+    std::variant<Node_DeclareVar*,Node_Assign*,Node_CallFunc*,Node_DeclareFunc*,Node_Return*,Node_BlockStamts*,Node_IfStamt*,Node_WhileStamt*,Node_CustomBlock*,Node_DeclareConst*,Node_DeclareTable*> value;
 };
 
 struct Node_Prog{
@@ -90,7 +113,7 @@ class Parser{
     int current;
     Allocator allocator;
     public:
-    Parser(const std::vector<std::optional<Token_t>> tokens)
+    Parser(const std::vector<std::optional<Token_t>>& tokens)
         : m_tokens(tokens), current(0), allocator(2 * 1024 * 1024)
     {}
     ~Parser(){}
@@ -149,6 +172,8 @@ private:
             Node_Expression* node = allocator.alloc<Node_Expression>();
             if(peek(1).has_value() && peek(1).value().type == TokenType::t_LeftPar){
                 new (node) Node_Expression {parseCallFunc()};
+            }else if(peek(1).has_value() && peek(1).value().type == TokenType::t_LeftSqrBrack){
+                new (node) Node_Expression {parseTableIndx()};
             }else{
                 consume(TokenType::t_Ident);
                 new (node) Node_Expression {Node_Ident{token.value().value}};
@@ -162,10 +187,9 @@ private:
             return node;
         }
         
-        throw std::runtime_error("Parser Error: Undefined token: '"+ TokenName[static_cast<int>(token.value().type)] +"'");
+        throw std::runtime_error("Parser Error: Undefined token: '"+ ((token.has_value())? TokenName[static_cast<int>(token.value().type)] : "EOF" ) +"'");
     }
     Node_Expression* parseExpression(int precedence = 0){
-        std::optional<Token_t> token = peek();
         Node_Expression* left = parsePrimary();
 
         while(true){
@@ -204,6 +228,36 @@ private:
 
         return node;
     }
+    Node_DeclareTable* parseTableDec(){
+        consume(TokenType::t_Let);
+        consume(TokenType::t_LeftSqrBrack);
+        std::string capacity;
+        if(peek().has_value() && peek().value().type == TokenType::t_IntLiter)
+            capacity = consume(TokenType::t_IntLiter).value;
+        consume(TokenType::t_RightSqrBrack);
+        std::string identifier = consume(TokenType::t_Ident).value;
+        
+        std::vector<Node_Expression*> items;
+        if(peek().has_value() && peek().value().type == TokenType::t_Semi)
+            consume(TokenType::t_Semi);
+        else if(peek().has_value() && peek().value().type == TokenType::t_Assign){
+            consume(TokenType::t_Assign);
+            consume(TokenType::t_LeftBrack);
+            if(peek().has_value() && peek().value().type != TokenType::t_RightBrack)
+                while(true){
+                    items.push_back(parseExpression());
+                    if(peek().has_value() && peek().value().type == TokenType::t_Comma) consume(TokenType::t_Comma);
+                    else break;
+                }
+            consume(TokenType::t_RightBrack);
+            consume(TokenType::t_Semi);
+        }
+        std::stringstream length;
+        length << items.size();
+        Node_DeclareTable* node = allocator.alloc<Node_DeclareTable>();
+        new (node) Node_DeclareTable{identifier, capacity, length.str(), items};
+        return node;
+    }
     Node_AssignVar* parseVariableAssign(){
         Token_t token = consume(TokenType::t_Ident);
         consume(TokenType::t_Assign);
@@ -212,6 +266,19 @@ private:
 
         Node_AssignVar* node = allocator.alloc<Node_AssignVar>();
         new (node) Node_AssignVar{token.value,value};
+        return node;
+    }
+    Node_AssignTabIndx* parseTabIndxAssign(){
+        Token_t token = consume(TokenType::t_Ident);
+        consume(TokenType::t_LeftSqrBrack);
+        std::string index = consume(TokenType::t_IntLiter).value;
+        consume(TokenType::t_RightSqrBrack);
+        consume(TokenType::t_Assign);
+        Node_Expression* value = parseExpression();
+        consume(TokenType::t_Semi);
+
+        Node_AssignTabIndx* node = allocator.alloc<Node_AssignTabIndx>();
+        new (node) Node_AssignTabIndx{token.value, index, value};
         return node;
     }
     Node_DeclareFunc* parseDeclareFunc(){
@@ -251,6 +318,15 @@ private:
         consume(TokenType::t_RightPar);
         Node_CallFunc* node = allocator.alloc<Node_CallFunc>();
         new (node) Node_CallFunc{token.value,args};
+        return node;
+    }
+    Node_TabIndx* parseTableIndx(){
+        Token_t token = consume(TokenType::t_Ident);
+        consume(TokenType::t_LeftSqrBrack);
+        Node_Expression* index = parseExpression();
+        consume(TokenType::t_RightSqrBrack);
+        Node_TabIndx* node = allocator.alloc<Node_TabIndx>();
+        new (node) Node_TabIndx{token.value, index};
         return node;
     }
     Node_BlockStamts* parseBlockStamts(){
@@ -342,7 +418,10 @@ private:
         Node_Stamt* stmt = allocator.alloc<Node_Stamt>();
 
         if(token.has_value() && token.value().type == TokenType::t_Let){
-            new (stmt) Node_Stamt{parseVariableDec()};
+            if(peek(1).has_value() && peek(1).value().type == TokenType::t_LeftSqrBrack){
+                new (stmt) Node_Stamt{parseTableDec()};
+            }else
+                new (stmt) Node_Stamt{parseVariableDec()};
             return stmt;
         }
         
@@ -351,8 +430,15 @@ private:
                 new (stmt) Node_Stamt{parseCallFunc()};
                 consume(TokenType::t_Semi);
                 return stmt;
+            }else if(peek(1).has_value() && peek(1).value().type == TokenType::t_LeftSqrBrack){
+                Node_Assign* assign = allocator.alloc<Node_Assign>();
+                new (assign) Node_Assign{parseTabIndxAssign()};
+                new (stmt) Node_Stamt{assign};
+            }else{
+                Node_Assign* assign = allocator.alloc<Node_Assign>();
+                new (assign) Node_Assign{parseVariableAssign()};
+                new (stmt) Node_Stamt{assign};
             }
-            new (stmt) Node_Stamt{parseVariableAssign()};
             return stmt;
         }
         
@@ -391,12 +477,16 @@ private:
             return stmt;
         }
 
-        throw std::runtime_error("Parser Error: Unexpected statement: '"+ TokenName[static_cast<int>(token.value().type)] +"'");
+        throw std::runtime_error("Parser Error: Unexpected statement: '"+ ((token.has_value())? TokenName[static_cast<int>(token.value().type)] : "EOF") +"'");
     }
     
 };
 
 // Function prototypes for recursive printing
+void printNodeAssign(const Node_Assign* node, int indent = 0);
+void printNodeAssignTabIndx(const Node_AssignTabIndx* node, int indent = 0);
+void printNodeTabIndx(const Node_TabIndx* node, int indent = 0);
+void printNodeDeclareTable(const Node_DeclareTable* node, int indent = 0);
 void printNodeDeclareConst(const Node_DeclareConst* node, int indent = 0);
 void printNodeBlockStamts(const Node_BlockStamts* node, int indent = 0);
 void printNodeIfStamt(const Node_IfStamt* node, int indent = 0);
@@ -516,7 +606,7 @@ void printNodeCallFunc(const Node_CallFunc* node, int indent){
     std::cout << "Name: " << node->name << std::endl;
 
     printIndent(indent + 1);
-    std::cout << "Agrs:";
+    std::cout << "Args:";
     if(!node->args.size()) std::cout << " None";
     std::cout << std::endl;
     for(const auto* arg : node->args){
@@ -543,6 +633,8 @@ void printNodeExpression(const Node_Expression* node, int indent) {
             printNodeBin(value, indent + 1);
         } else if constexpr (std::is_same_v<T, Node_CallFunc*>) {
             printNodeCallFunc(value, indent + 1);
+        } else if constexpr (std::is_same_v<T, Node_TabIndx*>) {
+            printNodeTabIndx(value, indent + 1);
         }
     }, node->value);
 }
@@ -583,6 +675,64 @@ void printNodeDeclareVar(const Node_DeclareVar* node, int indent) {
     printNodeExpression(node->expr, indent + 2);
 }
 
+// Print a Node_DeclareTable
+void printNodeDeclareTable(const Node_DeclareTable* node, int indent){
+    if (!node) return;
+    
+    printIndent(indent);
+    std::cout << "Node_DeclareTable:" <<std::endl;
+
+    printIndent(indent + 1);
+    std::cout << "Name: " << node->name << std::endl;
+
+    printIndent(indent + 1);
+    std::cout << "Capacity:" << node->capacity << std::endl;
+
+    printIndent(indent + 1);
+    std::cout << "Length:" << node->length << std::endl;
+
+    printIndent(indent + 1);
+    std::cout << "Items:";
+    if(!node->items.size()) std::cout << " None";
+    std::cout << std::endl;
+    for (const auto* exp : node->items){
+        printNodeExpression(exp, indent + 2);
+    }
+}
+
+// Print a Node_TabIndx
+void printNodeTabIndx(const Node_TabIndx* node, int indent){
+    if (!node) return;
+
+    printIndent(indent);
+    std::cout << "Node_TabIndx:" << std::endl;
+
+    printIndent(indent + 1);
+    std::cout << "Name: " << node->name << std::endl;
+
+    printIndent(indent + 1);
+    std::cout << "Index:" << std::endl;
+    printNodeExpression(node->index, indent + 2);
+}
+
+// Print a Node_AssignTabIndx
+void printNodeAssignTabIndx(const Node_AssignTabIndx* node, int indent){
+    if (!node) return;
+
+    printIndent(indent);
+    std::cout << "Node_AssignTabIndx:" << std::endl;
+
+    printIndent(indent);
+    std::cout << "Name: " << node->name << std::endl;
+
+    printIndent(indent);
+    std::cout << "Index: " << node->index << std::endl;
+
+    printIndent(indent + 1);
+    std::cout << "Value: " << std::endl;
+    printNodeExpression(node->expr, indent + 2);
+}
+
 // Print a Node_AssignVar
 void printNodeAssignVar(const Node_AssignVar* node, int indent){
     if (!node) return;
@@ -597,6 +747,24 @@ void printNodeAssignVar(const Node_AssignVar* node, int indent){
     std::cout << "Value: " << std::endl;
     printNodeExpression(node->expr, indent + 2);
 }
+
+// Print a Node_Assign
+void printNodeAssign(const Node_Assign* node, int indent){
+    if (!node) return;
+
+    printIndent(indent);
+    std::cout << "Node_Assign:" << std::endl;
+
+    std::visit([indent](const auto& value) {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, Node_AssignVar*>) {
+            printNodeAssignVar(value, indent + 1);
+        }else if constexpr (std::is_same_v<T, Node_AssignTabIndx*>) {
+            printNodeAssignTabIndx(value, indent + 1);
+        }
+    }, node->assign);
+}
+
 
 // Print a Node_BlockStamts
 void printNodeBlockStamts(const Node_BlockStamts* node, int indent){
@@ -663,8 +831,8 @@ void printNodeStamt(const Node_Stamt* node, int indent) {
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, Node_DeclareVar*>){
             printNodeDeclareVar(value, indent + 1);
-        }else if constexpr (std::is_same_v<T, Node_AssignVar*>){
-            printNodeAssignVar(value, indent + 1);
+        }else if constexpr (std::is_same_v<T, Node_Assign*>){
+            printNodeAssign(value, indent + 1);
         }else if constexpr (std::is_same_v<T, Node_CallFunc*>){
             printNodeCallFunc(value, indent + 1);
         }else if constexpr (std::is_same_v<T, Node_DeclareFunc*>){
@@ -681,6 +849,8 @@ void printNodeStamt(const Node_Stamt* node, int indent) {
             printNodeCustomBlock(value, indent + 1);
         }else if constexpr (std::is_same_v<T, Node_DeclareConst*>){
             printNodeDeclareConst(value, indent + 1);
+        }else if constexpr (std::is_same_v<T, Node_DeclareTable*>){
+            printNodeDeclareTable(value, indent + 1);
         }
     }, node->value);
 }

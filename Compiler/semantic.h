@@ -1,4 +1,9 @@
+#pragma once
 #include <unordered_map>
+#include <string>
+#include <variant>
+#include <stdexcept>
+#include <sstream>
 
 struct SymboleInfo_t{
     std::string type;
@@ -114,7 +119,17 @@ Node_Expression* visitNode(Node_Expression* node,const SymboleTable& scope){
                 node = new Node_Expression{std::get<Node_Number>(folded)};
             }
         }
-        
+        else if constexpr (std::is_same_v<T, Node_TabIndx*>){
+            const SymboleInfo_t* table = scope.resolve(value->name);
+            if(table->type != "table"){
+                throw std::runtime_error("Semantic Error: '"+ value->name +"' is not a table.");
+            }
+            value->index = visitNode(value->index, scope);
+            if(std::holds_alternative<Node_Number>(value->index->value))
+                if(std::stoi(std::get<Node_Number>(value->index->value).value) + 1 > std::stoi(std::get<std::string>(table->info)) ){
+                    throw std::runtime_error("Semantic Error: Index "+ std::get<Node_Number>(value->index->value).value +" out of range for table '"+ value->name +"'.");
+                }
+        }
     }, node->value);
     return node;
 }
@@ -126,18 +141,10 @@ Node_BlockStamts* visitNode(Node_BlockStamts* node, SymboleTable& scope){
     return node;
 }
 
-Node_Stamt* visitNode(Node_Stamt* node,SymboleTable& scope){
+Node_Assign* visitNode(Node_Assign* node,SymboleTable& scope){
     std::visit([&scope](auto* value) {
         using T = std::decay_t<decltype(value)>;
-        if constexpr (std::is_same_v<T, Node_DeclareVar*>){
-            scope.define(value->name, {"variable"});
-            value->expr = visitNode(value->expr, scope);
-        }
-        else if constexpr (std::is_same_v<T, Node_DeclareConst*>){
-            scope.define(value->name, {"constant"});
-            value->expr = visitNode(value->expr, scope);
-        }
-        else if constexpr (std::is_same_v<T, Node_AssignVar*>){
+        if constexpr (std::is_same_v<T, Node_AssignVar*>){
             const SymboleInfo_t* variable = scope.resolve(value->name);
             if(variable->type == "constant"){
                 throw std::runtime_error("Semantic Error: '"+ value->name +"' is a constant cannot be modified.");
@@ -146,6 +153,33 @@ Node_Stamt* visitNode(Node_Stamt* node,SymboleTable& scope){
                 throw std::runtime_error("Semantic Error: '"+ value->name +"' is not a variable.");
             }
             value->expr = visitNode(value->expr, scope);
+        }else if constexpr (std::is_same_v<T, Node_AssignTabIndx*>){
+            const SymboleInfo_t* table = scope.resolve(value->name);
+            if(table->type != "table"){
+                throw std::runtime_error("Semantic Error: '"+ value->name +"' is not a table.");
+            }
+            if(std::stoi(value->index) + 1 > std::stoi(std::get<std::string>(table->info)) ){
+                throw std::runtime_error("Semantic Error: Index "+ value->index +" out of range for table '"+ value->name +"'.");
+            }
+            value->expr = visitNode(value->expr, scope);
+        }
+    }, node->assign);
+    return node;
+}
+
+Node_Stamt* visitNode(Node_Stamt* node,SymboleTable& scope){
+    std::visit([&scope](auto* value) {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, Node_DeclareVar*>){
+            scope.define(value->name, {"variable"});
+            if (value->expr) value->expr = visitNode(value->expr, scope);
+        }
+        else if constexpr (std::is_same_v<T, Node_DeclareConst*>){
+            scope.define(value->name, {"constant"});
+            value->expr = visitNode(value->expr, scope);
+        }
+        else if constexpr (std::is_same_v<T, Node_Assign*>){
+            value = visitNode(value, scope);
         }
         else if constexpr (std::is_same_v<T, Node_DeclareFunc*>){
             scope.define(value->name, {"function", value->params});
@@ -178,6 +212,14 @@ Node_Stamt* visitNode(Node_Stamt* node,SymboleTable& scope){
         }
         else if constexpr (std::is_same_v<T, Node_Return*>){
             value->value = visitNode(value->value, scope);
+        }
+        else if constexpr (std::is_same_v<T, Node_DeclareTable*>){
+            std::string capacity = (!std::empty(value->capacity))? value->capacity : value->length;
+            scope.define(value->name, {"table", capacity});
+            if (!std::empty(value->capacity) && std::stoi(value->length) > std::stoi(value->capacity)) 
+                throw std::runtime_error("Semantic Error: excess elements in array initializer : "+ value->length + " > "+value->capacity+" .");
+            for(auto*& item : value->items)
+                item = visitNode(item, scope);
         }
         else if constexpr (std::is_same_v<T, Node_IfStamt*>){
             value->test = visitNode(value->test, scope);

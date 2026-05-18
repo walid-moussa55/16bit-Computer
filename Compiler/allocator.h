@@ -1,6 +1,9 @@
+#pragma once
 #include <iostream>
 #include <cstdlib> // for std::malloc and std::free
 #include <cstddef> // Required for std::byte
+#include <functional>
+#include <memory>
 
 
 class Allocator{
@@ -15,12 +18,17 @@ public:
 
     template<typename T>
     T* alloc(){
-        if (m_offset + sizeof(T) > m_buffer + m_size) {
+        size_t space = m_size - static_cast<size_t>(m_offset - m_buffer);
+        void* ptr = m_offset;
+        if (!std::align(alignof(T), sizeof(T), ptr, space))
             throw std::bad_alloc();
-        }
-        void* offset = m_offset;
-        m_offset += sizeof(T);
-        return static_cast<T*>(offset);
+        m_offset = static_cast<std::byte*>(ptr) + sizeof(T);
+
+        T* obj = static_cast<T*>(ptr);
+        m_destructors.push_back([obj]() {
+            obj->~T();
+        });
+        return obj;
     }
     size_t usedSize() const {
         return static_cast<size_t>(m_offset - m_buffer);
@@ -31,6 +39,8 @@ public:
 
     ~Allocator(){
         std::cout<<"Freeing Allocator"<<std::endl;
+        for (auto it = m_destructors.rbegin(); it != m_destructors.rend(); ++it)
+            (*it)();
         std::free(m_buffer);
     }
 
@@ -38,4 +48,5 @@ private:
     size_t m_size;
     std::byte* m_buffer;
     std::byte* m_offset;
+    std::vector<std::function<void()>> m_destructors;
 };

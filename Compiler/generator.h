@@ -1,7 +1,7 @@
-
+#pragma once
 class ScopeVariable{
 public:
-    int m_scope;
+    size_t m_scope;
     std::unordered_map<std::string, size_t> m_table;
     ScopeVariable(size_t scope)
         :   m_scope(scope){}
@@ -23,6 +23,9 @@ public:
     :   m_ast(ast), m_opcodes({"jmp _start"}), m_labelCounter(0), m_spOffset(0), m_scopeStack({}), m_offsetforwaitting(0)
     {}
     std::string generateOpcodes(){
+
+        registerStrings(m_ast);
+
         pushScope();
         for(const auto* stmt : m_ast.stmts){
             if(std::holds_alternative<Node_DeclareVar*>(stmt->value)){
@@ -30,13 +33,9 @@ public:
                 if(std::get<Node_DeclareVar*>(stmt->value)->expr && std::holds_alternative<Node_Number>(std::get<Node_DeclareVar*>(stmt->value)->expr->value)){
                     initialValue = std::get<Node_Number>(std::get<Node_DeclareVar*>(stmt->value)->expr->value).value;
                 }else if(std::get<Node_DeclareVar*>(stmt->value)->expr && std::holds_alternative<Node_String>(std::get<Node_DeclareVar*>(stmt->value)->expr->value)){
-                    std::string stringLabel = generateLabel("string");
                     std::string text = std::get<Node_String>(std::get<Node_DeclareVar*>(stmt->value)->expr->value).value;
-                    std::cout<<"text : "<<text<<std::endl;
-                    m_opcodes.push_back(stringLabel +":");
-                    m_opcodes.push_back("\""+text+"$\"");
-                    m_string_Label[text] = stringLabel;
-                    initialValue = stringLabel;
+                    if(m_string_Label.find(text) == m_string_Label.end()) throw std::runtime_error("error: can't found a label to this :'"+ text + "'");
+                    initialValue = m_string_Label.at(text);
                 }
                 declareGlobVar(std::get<Node_DeclareVar*>(stmt->value)->name, initialValue);
             }else if(std::holds_alternative<Node_DeclareConst*>(stmt->value)){
@@ -44,12 +43,9 @@ public:
                 if(std::get<Node_DeclareConst*>(stmt->value)->expr && std::holds_alternative<Node_Number>(std::get<Node_DeclareConst*>(stmt->value)->expr->value)){
                     initialValue = std::get<Node_Number>(std::get<Node_DeclareConst*>(stmt->value)->expr->value).value;
                 }else if(std::get<Node_DeclareConst*>(stmt->value)->expr && std::holds_alternative<Node_String>(std::get<Node_DeclareConst*>(stmt->value)->expr->value)){
-                    std::string stringLabel = generateLabel("string");
                     std::string text = std::get<Node_String>(std::get<Node_DeclareConst*>(stmt->value)->expr->value).value;
-                    std::cout<<"text : "<<text<<std::endl;
-                    m_opcodes.push_back(stringLabel +":");
-                    m_opcodes.push_back("\""+text+"$\"");
-                    m_string_Label[text] = stringLabel;
+                    if(m_string_Label.find(text) == m_string_Label.end()) throw std::runtime_error("error: can't found a label to this :'"+ text + "'");
+                    initialValue = m_string_Label.at(text);
                 }
                 declareGlobVar(std::get<Node_DeclareConst*>(stmt->value)->name, initialValue);
             }else if(std::holds_alternative<Node_DeclareFunc*>(stmt->value)){
@@ -57,11 +53,55 @@ public:
             }else if(std::holds_alternative<Node_CustomBlock*>(stmt->value)){
                 m_opcodes.push_back("; custom");
                 m_opcodes.push_back(std::get<Node_CustomBlock*>(stmt->value)->value);
+            }else if(std::holds_alternative<Node_DeclareTable*>(stmt->value)){
+                std::string initialValue = "0";
+                std::string tableLabel = generateLabel("table");
+                std::string capacity = std::get<Node_DeclareTable*>(stmt->value)->capacity;
+                capacity = (std::empty(capacity))? "0" : capacity;
+                std::string length = std::get<Node_DeclareTable*>(stmt->value)->length;
+                std::vector<Node_Expression*> items = std::get<Node_DeclareTable*>(stmt->value)->items;
+                std::vector<std::string> items_labels;
+                if (items.size()) {
+                    for (const auto& item : items){
+                        if(std::holds_alternative<Node_Number>(item->value)){
+                            std::string value = std::get<Node_Number>(item->value).value;
+                            items_labels.push_back(value);
+                        }else if(std::holds_alternative<Node_String>(item->value)){
+                            std::string text = std::get<Node_String>(item->value).value;
+                            if(m_string_Label.find(text) == m_string_Label.end()) throw std::runtime_error("error: can't found a label to this :'"+ text + "'");
+                            std::string stringLabel = m_string_Label.at(text);
+                            items_labels.push_back(stringLabel);
+                        }
+                    }
+                }
+                
+                if(capacity == "0"){
+                    if(items_labels.size()){
+                        initialValue = tableLabel;
+                        m_opcodes.push_back(tableLabel + ":");
+                        m_opcodes.push_back(length + " ; capacity");
+                        m_opcodes.push_back(length + " ; length");
+                        for(const auto& item_label : items_labels){
+                            m_opcodes.push_back(item_label);
+                        }
+                    }
+                }else{
+                    initialValue = tableLabel;
+                    m_opcodes.push_back(tableLabel + ":");
+                    if(items_labels.size()){
+                        m_opcodes.push_back(capacity + " ; capacity");
+                        m_opcodes.push_back(length + " ; length");
+                        for(const auto& item_label : items_labels) m_opcodes.push_back(item_label);
+                        int extra = std::stoi(capacity) - std::stoi(length);
+                        for(int i = 0; i < extra; i++) m_opcodes.push_back("0");
+                    }else m_opcodes.push_back("resw(" + capacity + ")");
+                }
+                declareGlobVar(std::get<Node_DeclareTable*>(stmt->value)->name, initialValue);
             }
         }
         m_opcodes.push_back("_start:");
         for(const auto* stmt : m_ast.stmts){
-            if(!std::holds_alternative<Node_DeclareFunc*>(stmt->value) && !std::holds_alternative<Node_CustomBlock*>(stmt->value)){
+            if(!std::holds_alternative<Node_DeclareFunc*>(stmt->value) && !std::holds_alternative<Node_CustomBlock*>(stmt->value) && !std::holds_alternative<Node_DeclareTable*>(stmt->value)){
                 visitNode(stmt);
             }
         }
@@ -92,6 +132,7 @@ private:
         for(int i = 0; i < varsToPop; i++){
             m_opcodes.push_back("pop");
         }
+        assert(m_spOffset >= varsToPop);
         m_spOffset -= varsToPop;
     }
     void declareVarInScope(const std::string& name, const std::string& initialValue = "0"){
@@ -148,7 +189,12 @@ private:
 
         std::vector<std::string> pars;
         for(const auto& param : node->params){
-            pars.push_back(declareGlobVar(param));
+            // Create parameter label as func_functionName_paramName_ (e.g., func_pow_number_, func_pow_power_)
+            std::string paramLabel = "func_" + node->name + "_" + param + "_";
+            m_globalSymbolTable[param] = paramLabel;
+            m_opcodes.push_back(paramLabel+":");
+            m_opcodes.push_back("0");
+            pars.push_back(paramLabel);
         }
         m_funcPars[node->name] = pars;
         m_opcodes.push_back(funcLabel+":");
@@ -168,7 +214,7 @@ private:
         if(op == "<") m_opcodes.push_back("jl "+yesL);
         if(op == ">") m_opcodes.push_back("jg "+yesL);
         if(op == "<=") {m_opcodes.push_back("jl "+yesL);m_opcodes.push_back("je "+yesL);}
-        if(op == ">=") {m_opcodes.push_back("je "+yesL);m_opcodes.push_back("je "+yesL);}
+        if(op == ">=") {m_opcodes.push_back("jg "+yesL);m_opcodes.push_back("je "+yesL);}
         m_opcodes.push_back("ldva 0\njmp "+endTest+"\n"+yesL+":\nldva 1\n"+endTest+":");
     }
     void visitNode(const Node_Expression* node){
@@ -194,6 +240,16 @@ private:
                     accessVariable(value.name);
                     m_opcodes.push_back("ldba");
                 }
+            }
+            else if constexpr (std::is_same_v<T, Node_TabIndx*>){
+                m_opcodes.push_back("; tabindx");
+                accessVariable(value->name);
+                m_opcodes.push_back("ina\nina");
+                m_opcodes.push_back("pusha");
+                visitNode(value->index);
+                m_opcodes.push_back("popb");
+                m_opcodes.push_back("addba");
+                m_opcodes.push_back("ldba");
             }
             else if constexpr (std::is_same_v<T, Node_Bin*>){
                 m_opcodes.push_back("; binexp");
@@ -228,11 +284,7 @@ private:
                 int index = 0;
                 for(const auto* arg : value->args){
                     std::string paramLabel = paramLabels[index++];
-                    if(std::holds_alternative<Node_Number>(arg->value)){
-                        visitNode(arg);
-                    }else{
-                        visitNode(arg);
-                    }
+                    visitNode(arg);
                     m_opcodes.push_back("sta "+ paramLabel);
                 }
                 if (m_globalSymbolTable.find(value->name) == m_globalSymbolTable.end()) {
@@ -241,6 +293,31 @@ private:
                 m_opcodes.push_back("call "+ m_globalSymbolTable.at(value->name));
             }else throw std::runtime_error("Generator Error: Unknown Expression node ");
         }, node->value);
+    }
+    void visitNode(const Node_Assign* node){
+        std::visit([this](const auto& value){
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, Node_AssignVar*>){
+                m_opcodes.push_back("; varassign");
+                if(m_scopeStack.size() > 1 && m_globalSymbolTable.find(value->name) == m_globalSymbolTable.end()){
+                    accessVariable(value->name);
+                    m_opcodes.push_back("pushb");
+                    visitNode(value->expr);
+                    m_opcodes.push_back("popb\nstab");
+                }else{
+                    visitNode(value->expr);
+                    m_opcodes.push_back("sta "+ m_globalSymbolTable.at(value->name));
+                }
+            }else if constexpr (std::is_same_v<T, Node_AssignTabIndx*>){
+                m_opcodes.push_back("; table indx assign");
+                accessVariable(value->name);
+                m_opcodes.push_back("ldvb " + std::to_string(2 + std::stoi(value->index)));
+                m_opcodes.push_back("addba");
+                m_opcodes.push_back("pushb");
+                visitNode(value->expr);
+                m_opcodes.push_back("popb\nstab");
+            }
+        }, node->assign);
     }
     void visitNode(const Node_BlockStamts* node){
         pushScope();
@@ -266,18 +343,14 @@ private:
                         declareVarInScope(value->name, initialValue);
                     }else{
                         declareVarInScope(value->name);
-                        Node_AssignVar* assNode = new Node_AssignVar{value->name, value->expr};
-                        Node_Stamt* assignNode = new Node_Stamt{assNode};
-                        visitNode(assignNode);
-                        delete assignNode;
-                        delete assNode;
+                        auto assvarNode = std::unique_ptr<Node_AssignVar>(new Node_AssignVar{value->name, value->expr});
+                        auto assNode    = std::unique_ptr<Node_Assign>(new Node_Assign{assvarNode.get()});
+                        visitNode(assNode.get());
                     }
                 }else if(value->expr && !std::holds_alternative<Node_Number>(value->expr->value)){
-                    Node_AssignVar* assNode = new Node_AssignVar{value->name, value->expr};
-                    Node_Stamt* assignNode = new Node_Stamt{assNode};
-                    visitNode(assignNode);
-                    delete assignNode;
-                    delete assNode;
+                    auto assvarNode = std::unique_ptr<Node_AssignVar>(new Node_AssignVar{value->name, value->expr});
+                    auto assNode    = std::unique_ptr<Node_Assign>(new Node_Assign{assvarNode.get()});
+                    visitNode(assNode.get());
                 }
             }else if constexpr (std::is_same_v<T, Node_DeclareConst*>){
                 m_opcodes.push_back("; constdecl");
@@ -287,30 +360,17 @@ private:
                         declareVarInScope(value->name, initialValue);
                     }else{
                         declareVarInScope(value->name);
-                        Node_AssignVar* assNode = new Node_AssignVar{value->name, value->expr};
-                        Node_Stamt* assignNode = new Node_Stamt{assNode};
-                        visitNode(assignNode);
-                        delete assignNode;
-                        delete assNode;
+                        auto assvarNode = std::unique_ptr<Node_AssignVar>(new Node_AssignVar{value->name, value->expr});
+                        auto assNode    = std::unique_ptr<Node_Assign>(new Node_Assign{assvarNode.get()});
+                        visitNode(assNode.get());
                     }
                 }else if(value->expr && !std::holds_alternative<Node_Number>(value->expr->value)){
-                    Node_AssignVar* assNode = new Node_AssignVar{value->name, value->expr};
-                    Node_Stamt* assignNode = new Node_Stamt{assNode};
-                    visitNode(assignNode);
-                    delete assignNode;
-                    delete assNode;
+                    auto assvarNode = std::unique_ptr<Node_AssignVar>(new Node_AssignVar{value->name, value->expr});
+                    auto assNode    = std::unique_ptr<Node_Assign>(new Node_Assign{assvarNode.get()});
+                    visitNode(assNode.get());
                 }
-            }else if constexpr (std::is_same_v<T, Node_AssignVar*>){
-                m_opcodes.push_back("; varassign");
-                if(m_scopeStack.size() > 1 && m_globalSymbolTable.find(value->name) == m_globalSymbolTable.end()){
-                    accessVariable(value->name);
-                    m_opcodes.push_back("pushb");
-                    visitNode(value->expr);
-                    m_opcodes.push_back("popb\nstab");
-                }else{
-                    visitNode(value->expr);
-                    m_opcodes.push_back("sta "+ m_globalSymbolTable.at(value->name));
-                }
+            }else if constexpr (std::is_same_v<T, Node_Assign*>){
+                visitNode(value);
             }else if constexpr (std::is_same_v<T, Node_CallFunc*>){
                 m_opcodes.push_back("; callfunc");
                 auto paramLabels = m_funcPars.at(value->name);
@@ -321,11 +381,7 @@ private:
                 int index = 0;
                 for(const auto* arg : value->args){
                     std::string paramLabel = paramLabels[index++];
-                    if(std::holds_alternative<Node_Number>(arg->value)){
-                        visitNode(arg);
-                    }else{
-                        visitNode(arg);
-                    }
+                    visitNode(arg);
                     m_opcodes.push_back("sta "+ paramLabel);
                 }
                 m_opcodes.push_back("call "+ m_globalSymbolTable.at(value->name));
@@ -358,8 +414,88 @@ private:
                 visitNode(value->then);
                 m_opcodes.push_back("jmp "+ loop);
                 m_opcodes.push_back(endLoop+ ":");
+            }else if constexpr (std::is_same_v<T, Node_DeclareTable*>){
+                
             }else throw std::runtime_error("Generator Error: Unknown Statment node ");
         },node->value);
     }
-
+    
+    void registerStrings(const Node_Expression* node){
+        if (!node) return;
+        std::visit([this](const auto& value){
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, Node_String>){
+                if (m_string_Label.find(value.value) == m_string_Label.end()) {
+                    std::string label = generateLabel("string");
+                    std::cout << "register string : \"" << value.value << "\"" << std::endl;
+                    m_opcodes.push_back(label + ":");
+                    m_opcodes.push_back("\"" + value.value + "$\"");
+                    m_string_Label[value.value] = label;
+                }
+            }else if constexpr (std::is_same_v<T, Node_Bin*>){
+                registerStrings(value->left);
+                registerStrings(value->right);
+            }else if constexpr (std::is_same_v<T, Node_CallFunc*>){
+                for(const auto* arg : value->args){
+                    registerStrings(arg);
+                }
+            }else if constexpr (std::is_same_v<T, Node_TabIndx*>){
+                registerStrings(value->index);
+            }
+        }, node->value);
+    }
+    void registerStrings(const Node_Assign* node){
+        if (!node) return;
+        std::visit([this](const auto& value){
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, Node_AssignVar*>){
+                registerStrings(value->expr);
+            }else if constexpr (std::is_same_v<T, Node_AssignTabIndx*>){
+                registerStrings(value->expr);
+            }
+        }, node->assign);
+    }
+    void registerStrings(const Node_BlockStamts* node){
+        if (!node) return;
+        for(const auto& stmt : node->body) registerStrings(stmt);
+    }
+    void registerStrings(const Node_Stamt* node){
+        if (!node) return;
+        std::visit([this](const auto& value) {
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, Node_BlockStamts*>) {
+                registerStrings(value);
+            } else if constexpr (std::is_same_v<T, Node_DeclareVar*>) {
+                registerStrings(value->expr);
+            } else if constexpr (std::is_same_v<T, Node_DeclareConst*>) {
+                registerStrings(value->expr);
+            } else if constexpr (std::is_same_v<T, Node_Assign*>) {
+                registerStrings(value);
+            } else if constexpr (std::is_same_v<T, Node_CallFunc*>) {
+                for(const auto* arg : value->args) registerStrings(arg);
+            } else if constexpr (std::is_same_v<T, Node_Return*>) {
+                registerStrings(value->value);
+            } else if constexpr (std::is_same_v<T, Node_IfStamt*>) {
+                registerStrings(value->test);
+                registerStrings(value->then);
+                if(value->alter) registerStrings(value->alter);
+            } else if constexpr (std::is_same_v<T, Node_WhileStamt*>) {
+                registerStrings(value->test);
+                registerStrings(value->then);
+            } else if constexpr (std::is_same_v<T, Node_DeclareTable*>) {
+                for(const auto* item : value->items) registerStrings(item);
+            } else if constexpr (std::is_same_v<T, Node_DeclareFunc*>) {
+                for(const auto* stmt : value->body) registerStrings(stmt);
+            }
+        }, node->value);
+    }
+    void registerStrings(const Node_Prog& node){
+        for (const auto* stmt : node.stmts) {
+            registerStrings(stmt);
+        }
+        // std::cout << "m_string_Label :" << std::endl;
+        // for (const auto& [name, age] : m_string_Label) {
+        //     std::cout << name << ": " << age << "\n";
+        // }
+    }
 };
