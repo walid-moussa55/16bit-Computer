@@ -60,3 +60,24 @@
 | ldvb        | Load Next Word to B      | Loads the next word from memory into register b.                                             |
 | stab        | Store A to Address in B  | Stores the value in the accumulator (a) to the memory location pointed to by register b.     |
 | stba        | Store B to Address in A  | Stores the value in register b to the memory location pointed to by register a.              |
+| print       | Print Character          | Prints the ASCII character in the accumulator (a) to the console.                            |
+| clean       | Clean Console            | Clears the console output display.                                                           |
+| print8      | Print next 8-bit ASCII   | Prints the next 8-bit ASCII value to the console.                                          |
+| jmpa        | Jump to A                | Unconditionally jumps to the address stored in the accumulator (a).                          |
+| jmpb        | Jump to B                | Unconditionally jumps to the address stored in register b.                                   |
+| laa         | Load PC to A             | Loads the current Program Counter (PC) into the accumulator (a).                             |
+| lab         | Load PC to B             | Loads the current Program Counter (PC) into register b.                                      |
+| ina         | Increment A              | Increments the value in the accumulator (a) by 1.                                            |
+| inb         | Increment B              | Increments the value in register b by 1.                                                     |
+| dea         | Decrement A              | Decrements the value in the accumulator (a) by 1.                                            |
+| deb         | Decrement B              | Decrements the value in register b by 1.                                                     |
+| ldaa        | Load Address to A via A  | Loads the value from the memory address stored in the accumulator (a) into a.                |
+| ldab        | Load Address to A via B  | Loads the value from the memory address stored in register b into the accumulator (a).       |
+| ldba        | Load Address to B via A  | Loads the value from the memory address stored in the accumulator (a) into register b.       |
+| ldbb        | Load Address to B via B  | Loads the value from the memory address stored in register b into register b.                |
+| pop         | Pop Stack                | Pops the top value from the stack and discards it (decrements stack pointer).                |
+| sh8a        | Shift Left 8-bits A      | Shifts the value in the accumulator (a) left by 8 bits using the console module.             |
+| sh8b        | Shift Left 8-bits B      | Shifts the value in register b left by 8 bits using the console module.                      |
+| readchr     | Read Character           | Reads a single character from the keyboard into the accumulator (a).                         |
+| readwrd     | Read Word                | Reads a 16-bit word from the keyboard into the accumulator (a).                              |
+| retype      | Wait for Keyboard        | Clears keyboard input and halts/waits for new input.                                         |
