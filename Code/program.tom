@@ -1,8 +1,12 @@
 import "./Code/libs/stdio.tom"
-let x = 0;
-let message = "Yes";
-
-if (x == 0){
-    printNum(25);
-    print(message);
+import "./Code/libs/str.tom"
+let[] tableau = {1,2,3,4,5,6,7};
+let buffer = "   ";
+let i;
+i = 0;
+while(i < 7){
+    showSegs(i);
+    print("Step ");
+    printLn(itoa(tableau[i], buffer));
+    i = i + 1;
 }

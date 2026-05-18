@@ -1,0 +1,31 @@
+import "./Code/libs/stdio.tom"
+import "./Code/libs/str.tom"
+
+let message1 = "Type a number between 0 and 10 :";
+let message2 = " Too Hight, try again :";
+let message3 = " Too Low, Try again :";
+let message4 = " Correct :-)";
+let reponse = "  ";
+let exceptNum = 3;
+let randomNum = 0;
+
+printLn(message1);
+input(reponse);
+randomNum = atoi(reponse);
+while(randomNum != exceptNum){
+    if (randomNum < exceptNum){
+        print(reponse);
+        printLn(message3);
+    }else if(randomNum > exceptNum){
+        print(reponse);
+        printLn(message2);
+    }
+    input(reponse);
+    randomNum = atoi(reponse);
+}
+print(reponse);
+printLn(message4);
+
+
+
+

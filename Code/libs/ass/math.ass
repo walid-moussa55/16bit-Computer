@@ -1,0 +1,32 @@
+mode_fact1_:
+0
+mode_fact2_:
+0
+mode_:
+    lda mode_fact1_
+    ldb mode_fact2_
+    divab
+    pusha
+    mulba
+    lda mode_fact1_
+    subab
+    popb
+    ret
+
+pow_number_:
+0
+pow_power_:
+0
+pow_:
+    ldva 1
+    loop_pow_:
+        ldb pow_power_
+        testb
+        jz endFun_pow_
+        deb
+        stb pow_power_
+        ldb pow_number_
+        mulab
+        jmp loop_pow_
+    endFun_pow_:
+    ret

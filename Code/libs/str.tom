@@ -1,0 +1,20 @@
+%.lib "./Code/libs/ass/str.ass"%
+%.lib "./Code/libs/ass/math.ass"%
+
+function atoi(text){
+    %
+        lda func_atoi_text_
+        sta atoi_text_
+        call atoi_
+    %
+}
+
+function itoa(number, text){
+    %
+        lda func_itoa_number_
+        sta itoa_number_
+        ldb func_itoa_text_
+        stb itoa_text_ptr_
+        call itoa_
+    %
+}

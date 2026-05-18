@@ -1,0 +1,183 @@
+.lib "./Code/libs/ass/math.ass"
+atoi_text_:
+0
+atoi_number_:
+0
+atoi_chr_number_:
+0
+atoi_:
+    ldva 0
+    sta atoi_number_
+    lda atoi_text_
+    ina
+    ldab
+    stb atoi_chr_number_
+    ina
+    sta atoi_text_
+    loop_atoi_:
+        lda atoi_chr_number_
+        testa
+        jz endFun_atoi_
+
+        ldb atoi_text_
+        ldba
+        ldvb 255
+        andab
+        
+        ldvb 48
+        subab
+        pusha
+
+        ldva 10
+        sta pow_number_
+        lda atoi_chr_number_
+        dea
+        sta atoi_chr_number_
+        sta pow_power_
+        call pow_
+
+        popb
+        mulab
+
+        ldb atoi_number_
+        addba
+        stb atoi_number_
+
+        lda atoi_chr_number_
+        testa
+        jz endFun_atoi_
+
+        ldb atoi_text_
+        ldba
+        sh8a
+        ldvb 48
+        subab
+        pusha
+
+        ldva 10
+        sta pow_number_
+        lda atoi_chr_number_
+        dea
+        sta atoi_chr_number_
+        sta pow_power_
+        call pow_
+
+        popb
+        mulab
+
+        ldb atoi_number_
+        addba
+        stb atoi_number_
+
+        ldb atoi_text_
+        inb
+        stb atoi_text_
+        jmp loop_atoi_
+    endFun_atoi_:
+    lda atoi_number_
+    ret
+
+itoa_number_:
+0
+itoa_text_ptr_:
+0
+itoa_text_const_ptr_:
+0
+itoa_chr_number_:
+0
+itoa_wrd_number_:
+0
+itoa_:
+    ldva 0
+    sta itoa_chr_number_
+    sta itoa_wrd_number_
+    lda itoa_text_ptr_
+    sta itoa_text_const_ptr_
+    ina
+    sta itoa_text_ptr_
+    loop_itoa_:
+        ; first char
+        lda itoa_number_
+        ldvb 10
+        testa
+        jz endLoop_itoa_
+        sta mode_fact1_
+        stb mode_fact2_
+        call mode_
+        pusha
+        stb itoa_number_
+        lda itoa_chr_number_
+        ina
+        sta itoa_chr_number_
+        lda itoa_wrd_number_
+        ina
+        sta itoa_wrd_number_
+        ; second char
+        lda itoa_number_
+        ldvb 10
+        testa
+        jz endLoop_itoa_
+        sta mode_fact1_
+        stb mode_fact2_
+        call mode_
+        pusha
+        stb itoa_number_
+        lda itoa_chr_number_
+        ina
+        sta itoa_chr_number_
+        lda itoa_wrd_number_
+        ina
+        sta itoa_wrd_number_
+        ; test wrdnbr and textcap
+        lda itoa_text_const_ptr_
+        ldab
+        lda itoa_wrd_number_
+        cmpba
+        je endLoop_itoa_
+        jmp loop_itoa_
+    endLoop_itoa_:
+        lda itoa_text_ptr_
+        ldb itoa_chr_number_
+        stba
+        ina
+        sta itoa_text_ptr_
+    makeString_loop_:
+        popa
+        ldvb 48
+        addab
+        
+        ldb itoa_chr_number_
+        deb
+        stb itoa_chr_number_
+        jz itoa_addword_
+
+        popb
+        pusha
+        ldva 48
+        addba
+        lda itoa_chr_number_
+        dea
+        sta itoa_chr_number_
+
+        ldva 8
+        loop_shl8_:
+            shlb
+            dea
+            jz endLoop_shl8_
+            jmp loop_shl8_
+        endLoop_shl8_:
+        
+        popa
+        orab
+        itoa_addword_:
+            ldb itoa_text_ptr_
+            stab
+            inb
+            stb itoa_text_ptr_
+        lda itoa_chr_number_
+        testa
+        jz endLoop_makeString_
+        jmp makeString_loop_
+    endLoop_makeString_:
+    lda itoa_text_const_ptr_
+    ret

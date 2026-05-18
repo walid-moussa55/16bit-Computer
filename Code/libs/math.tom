@@ -1,0 +1,20 @@
+%.lib "./Code/libs/ass/math.ass"%
+function pow(number, power) {
+    %
+        lda func_pow_number_
+        sta pow_number_
+        ldb func_pow_power_
+        stb pow_power_
+        call pow_
+    %
+}
+
+function modelo(fact1, fact2) {
+    %
+        lda func_modelo_fact1_
+        sta mode_fact1_
+        ldb func_modelo_fact2_
+        stb mode_fact2_
+        call mode_
+    %
+}

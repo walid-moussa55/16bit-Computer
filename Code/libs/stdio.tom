@@ -1,6 +1,6 @@
-%.lib ".\Code\libs\stdio.ass"%
+%.lib "./Code/libs/ass/stdio.ass"%
 
-function printNum(number){
+function showSegs(number){
     %
     outa
     %
@@ -10,5 +10,20 @@ function print(text){
     %
     sta printBuff_text_
     call printBuff_
+    %
+}
+
+function printLn(text){
+    %
+    sta printLine_text_
+    call printLine_
+    %
+}
+
+function input(textPtr){
+    %
+        lda func_input_textPtr_
+        sta input_text_ptr_
+        call inputBuff_
     %
 }
