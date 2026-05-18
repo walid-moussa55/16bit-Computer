@@ -1,4 +1,4 @@
-// 78
+// 81
 struct Unicode_t{unsigned int unicode[8];};
 Unicode_t getUnicode(const unsigned char& code){
 	if(code == 0x00) return {{MI|PCO,RO|II|PCE,0					,0				,0			,0			,0			,0			}}; // nop
@@ -19,14 +19,14 @@ Unicode_t getUnicode(const unsigned char& code){
 	if(code == 0x0f) return {{MI|PCO,RO|II|PCE,BA|DIV|EO|BI|FI		,0				,0			,0			,0			,0			}}; // divba
 	if(code == 0x10) return {{MI|PCO,RO|II|PCE,AA|NO|SH0|EO|AI|FI	,0				,0			,0			,0			,0			}}; // nota  
 	if(code == 0x11) return {{MI|PCO,RO|II|PCE,BB|NO|SH0|EO|BI|FI	,0				,0			,0			,0			,0			}}; // notb  
-	if(code == 0x12) return {{MI|PCO,RO|II|PCE,AB|AND|EO|AI|FI		,0				,0			,0			,0			,0			}}; // andab
-	if(code == 0x13) return {{MI|PCO,RO|II|PCE,BA|AND|EO|BI|FI		,0				,0			,0			,0			,0			}}; // andba
-	if(code == 0x14) return {{MI|PCO,RO|II|PCE,AB|OR|EO|AI|FI		,0				,0			,0			,0			,0			}}; // orab
-	if(code == 0x15) return {{MI|PCO,RO|II|PCE,BA|OR|EO|BI|FI		,0				,0			,0			,0			,0			}}; // orba
-	if(code == 0x16) return {{MI|PCO,RO|II|PCE,AB|XOR|EO|AI|FI		,0				,0			,0			,0			,0			}}; // xorab
-	if(code == 0x17) return {{MI|PCO,RO|II|PCE,AA|XOR|EO|AI|FI		,0				,0			,0			,0			,0			}}; // xoraa
-	if(code == 0x18) return {{MI|PCO,RO|II|PCE,BB|XOR|EO|BI|FI		,0				,0			,0			,0			,0			}}; // xorbb
-	if(code == 0x19) return {{MI|PCO,RO|II|PCE,BA|XOR|EO|BI|FI		,0				,0			,0			,0			,0			}}; // xorba
+	if(code == 0x12) return {{MI|PCO,RO|II|PCE,AB|AND|SH0|EO|AI|FI	,0				,0			,0			,0			,0			}}; // andab
+	if(code == 0x13) return {{MI|PCO,RO|II|PCE,BA|AND|SH0|EO|BI|FI	,0				,0			,0			,0			,0			}}; // andba
+	if(code == 0x14) return {{MI|PCO,RO|II|PCE,AB|OR|SH0|EO|AI|FI	,0				,0			,0			,0			,0			}}; // orab
+	if(code == 0x15) return {{MI|PCO,RO|II|PCE,BA|OR|SH0|EO|BI|FI	,0				,0			,0			,0			,0			}}; // orba
+	if(code == 0x16) return {{MI|PCO,RO|II|PCE,AB|XOR|SH0|EO|AI|FI	,0				,0			,0			,0			,0			}}; // xorab
+	if(code == 0x17) return {{MI|PCO,RO|II|PCE,AA|XOR|SH0|EO|AI|FI	,0				,0			,0			,0			,0			}}; // xoraa
+	if(code == 0x18) return {{MI|PCO,RO|II|PCE,BB|XOR|SH0|EO|BI|FI	,0				,0			,0			,0			,0			}}; // xorbb
+	if(code == 0x19) return {{MI|PCO,RO|II|PCE,BA|XOR|SH0|EO|BI|FI	,0				,0			,0			,0			,0			}}; // xorba
 	if(code == 0x1a) return {{MI|PCO,RO|II|PCE,AA|SHL|LG0|EO|AI|FI	,0				,0			,0			,0			,0			}}; // shla  
 	if(code == 0x1b) return {{MI|PCO,RO|II|PCE,BB|SHL|LG0|EO|BI|FI	,0				,0			,0			,0			,0			}}; // shlb  
 	if(code == 0x1c) return {{MI|PCO,RO|II|PCE,AA|SHR|LG0|EO|AI|FI	,0				,0			,0			,0			,0			}}; // shra  
@@ -79,6 +79,9 @@ Unicode_t getUnicode(const unsigned char& code){
 	if(code == 0x4b) return {{MI|PCO,RO|II|PCE,SPE					,0				,0			,0			,0			,0			}}; // pop
 	if(code == 0x4c) return {{MI|PCO,RO|II|PCE,AO|IE				,SP|AI			,0			,0			,0			,0			}}; // sh8a
 	if(code == 0x4d) return {{MI|PCO,RO|II|PCE,BO|IE				,SP|BI			,0			,0			,0			,0			}}; // sh8b
+	if(code == 0x4e) return {{MI|PCO,RO|II|PCE,0					,AI				,0			,0			,0			,0			}}; // readchr
+	if(code == 0x4f) return {{MI|PCO,RO|II|PCE,0					,0	 			,AI			,0			,0			,0			}}; // readwrd
+	if(code == 0x50) return {{MI|PCO,RO|II|PCE,0			  		,HLT			,0			,0			,0			,0			}}; // retype
 	else             return {{0		,0		  ,0					,0				,0			,0			,0			,0			}};
 }
 Unicode_t getUnicode2(const unsigned char& code){
@@ -160,5 +163,8 @@ Unicode_t getUnicode2(const unsigned char& code){
 	if(code == 0x4b) return {{0,0,0			,0			,0			,0			,0			,0			}}; // pop
 	if(code == 0x4c) return {{0,0,0			,CO			,0			,0			,0			,0			}}; // sh8a
 	if(code == 0x4d) return {{0,0,0			,CO			,0			,0			,0			,0			}}; // sh8b
+	if(code == 0x4e) return {{0,0,KI		,KO			,0			,0			,0			,0			}}; // readchr
+	if(code == 0x4f) return {{0,0,KI		,KI			,KO			,0			,0			,0			}}; // readwrd
+	if(code == 0x50) return {{0,0,KC		,WT			,0			,0			,0			,0			}}; // retype
 	else             return {{0,0,0			,0			,0			,0			,0			,0			}};
 }

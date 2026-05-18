@@ -76,3 +76,6 @@ mspb
 pop
 sh8a
 sh8b
+readchr
+readwrd
+retype
