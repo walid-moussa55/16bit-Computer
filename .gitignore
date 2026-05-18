@@ -1,9 +1,7 @@
+.vscode
 program.ass
-Compiler/*.exe
-Generator/*.exe
-Unicode_CU/*.exe
-Assembler/*.exe
 Computer/ROMs
+build/*
 ram_unicode
 temp.tom
 temp.ass
