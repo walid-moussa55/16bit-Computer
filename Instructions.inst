@@ -79,3 +79,11 @@ sh8b
 readchr
 readwrd
 retype
+gsetx
+gsety
+gsetr
+gsetg
+gsetb
+gdraw
+gclear
+gfill

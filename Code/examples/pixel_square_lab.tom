@@ -1,0 +1,58 @@
+import "./Code/libs/graphics.tom"
+import "./Code/libs/math.tom"
+import "./Code/libs/stdio.tom"
+import "./Code/libs/str.tom"
+
+const TILE_START = 2;
+const PIXEL_SPACING = 2;
+const RED_BASE = 30;
+const RED_PER_REMAINDER = 20;
+const GREEN_BASE = 220;
+const GREEN_PER_REMAINDER = 8;
+const BLUE_LEVEL = 90;
+
+let inputText = "  ";
+let squareText = "   ";
+let inputNumber = 0;
+let square = 0;
+let lastDigit = 0;
+let validInput = 0;
+let row = 0;
+let column = 0;
+
+gclear();
+gfill(12,18,28);
+
+printLn("PIXEL SQUARE LAB");
+printLn("Enter a digit from 1 to 9:");
+while(validInput == 0){
+	input(inputText);
+	inputNumber = atoi(inputText);
+	if(inputNumber >= 1){
+		if(inputNumber <= 9){
+			validInput = 1;
+		}
+	}
+	if(validInput == 0){
+		printLn("Please enter a digit from 1 to 9.");
+	}
+}
+
+square = pow(inputNumber, 2);
+lastDigit = modelo(square, 10);
+itoa(square, squareText);
+
+print("Square: ");
+printLn(squareText);
+showSegs(square);
+
+printLn("Drawing an N by N pixel tile.");
+row = 0;
+while(row < inputNumber){
+	column = 0;
+	while(column < inputNumber){
+		gdraw(TILE_START + column * PIXEL_SPACING, TILE_START + row * PIXEL_SPACING, RED_BASE + lastDigit * RED_PER_REMAINDER, GREEN_BASE - lastDigit * GREEN_PER_REMAINDER, BLUE_LEVEL);
+		column = column + 1;
+	}
+	row = row + 1;
+}

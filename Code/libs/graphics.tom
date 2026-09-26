@@ -1,0 +1,34 @@
+
+function gclear(){
+    %
+        gclear
+    %
+}
+
+function gfill(colorR, colorG, colorB){
+    %
+        lda func_gfill_colorR_
+        gsetr
+        lda func_gfill_colorG_
+        gsetg
+        lda func_gfill_colorB_
+        gsetb
+        gfill
+    %
+}
+
+function gdraw(posX, posY, colorR, colorG, colorB){
+    %
+        lda func_gdraw_posX_
+        gsetx
+        lda func_gdraw_posY_
+        gsety
+        lda func_gdraw_colorR_
+        gsetr
+        lda func_gdraw_colorG_
+        gsetg
+        lda func_gdraw_colorB_
+        gsetb
+        gdraw
+    %
+}

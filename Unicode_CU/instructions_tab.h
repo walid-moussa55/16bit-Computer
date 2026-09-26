@@ -1,4 +1,4 @@
-// 81
+// 89
 struct Unicode_t{unsigned int unicode[8];};
 Unicode_t getUnicode(const unsigned char& code){
 	if(code == 0x00) return {{MI|PCO,RO|II|PCE,0					,0				,0			,0			,0			,0			}}; // nop
@@ -53,8 +53,8 @@ Unicode_t getUnicode(const unsigned char& code){
 	if(code == 0x31) return {{MI|PCO,RO|II|PCE,AO|BI				,0				,0			,0			,0			,0			}}; // mvab
 	if(code == 0x32) return {{MI|PCO,RO|II|PCE,BO|AI				,0				,0			,0			,0			,0			}}; // mvba
 	if(code == 0x33) return {{MI|PCO,RO|II|PCE,AO|IE				,CI				,0			,0			,0			,0			}}; // print
-	if(code == 0x34) return {{MI|PCO,RO|II|PCE,0					,0				,0			,0			,0			,0			}}; // clean
-	if(code == 0x35) return {{MI|PCO,RO|II|PCE,SP|CI				,0				,0			,0			,0			,0			}}; // print8
+	if(code == 0x34) return {{MI|PCO,RO|II|PCE,CC					,0				,0			,0			,0			,0			}}; // clean
+	if(code == 0x35) return {{MI|PCO,RO|II|PCE,CI					,0				,0			,0			,0			,0			}}; // print8
 	if(code == 0x36) return {{MI|PCO,RO|II|PCE,AO|PCJ				,0				,0			,0			,0			,0			}}; // jmpa
 	if(code == 0x37) return {{MI|PCO,RO|II|PCE,BO|PCJ				,0				,0			,0			,0			,0			}}; // jmpb
 	if(code == 0x38) return {{MI|PCO,RO|II|PCE,PCO|AI				,0				,0			,0			,0			,0			}}; // laa
@@ -77,11 +77,19 @@ Unicode_t getUnicode(const unsigned char& code){
 	if(code == 0x49) return {{MI|PCO,RO|II|PCE,SPO|AI				,0				,0			,0			,0			,0			}}; // mspa
 	if(code == 0x4a) return {{MI|PCO,RO|II|PCE,SPO|BI				,0				,0			,0			,0			,0			}}; // mspb
 	if(code == 0x4b) return {{MI|PCO,RO|II|PCE,SPE					,0				,0			,0			,0			,0			}}; // pop
-	if(code == 0x4c) return {{MI|PCO,RO|II|PCE,AO|IE				,SP|AI			,0			,0			,0			,0			}}; // sh8a
-	if(code == 0x4d) return {{MI|PCO,RO|II|PCE,BO|IE				,SP|BI			,0			,0			,0			,0			}}; // sh8b
+	if(code == 0x4c) return {{MI|PCO,RO|II|PCE,AO|IE				,AI|CO			,0			,0			,0			,0			}}; // sh8a
+	if(code == 0x4d) return {{MI|PCO,RO|II|PCE,BO|IE				,BI|CO			,0			,0			,0			,0			}}; // sh8b
 	if(code == 0x4e) return {{MI|PCO,RO|II|PCE,0					,AI				,0			,0			,0			,0			}}; // readchr
 	if(code == 0x4f) return {{MI|PCO,RO|II|PCE,0					,0	 			,AI			,0			,0			,0			}}; // readwrd
 	if(code == 0x50) return {{MI|PCO,RO|II|PCE,0			  		,HLT			,0			,0			,0			,0			}}; // retype
+	if(code == 0x51) return {{MI|PCO,RO|II|PCE,AO					,0				,0			,0			,0			,0			}}; // gsetx
+	if(code == 0x52) return {{MI|PCO,RO|II|PCE,AO					,0				,0			,0			,0			,0			}}; // gsety
+	if(code == 0x53) return {{MI|PCO,RO|II|PCE,AO					,0				,0			,0			,0			,0			}}; // gsetr
+	if(code == 0x54) return {{MI|PCO,RO|II|PCE,AO					,0				,0			,0			,0			,0			}}; // gsetg
+	if(code == 0x55) return {{MI|PCO,RO|II|PCE,AO					,0				,0			,0			,0			,0			}}; // gsetb
+	if(code == 0x56) return {{MI|PCO,RO|II|PCE,0					,0				,0			,0			,0			,0			}}; // gdraw
+	if(code == 0x57) return {{MI|PCO,RO|II|PCE,0					,0				,0			,0			,0			,0			}}; // gclear
+	if(code == 0x58) return {{MI|PCO,RO|II|PCE,0					,HLT			,0			,0			,0			,0			}}; // gfill
 	else             return {{0		,0		  ,0					,0				,0			,0			,0			,0			}};
 }
 Unicode_t getUnicode2(const unsigned char& code){
@@ -137,8 +145,8 @@ Unicode_t getUnicode2(const unsigned char& code){
 	if(code == 0x31) return {{0,0,0			,0			,0			,0			,0			,0			}}; // mvab
 	if(code == 0x32) return {{0,0,0			,0			,0			,0			,0			,0			}}; // mvba
 	if(code == 0x33) return {{0,0,0			,0			,0			,0			,0			,0			}}; // print
-	if(code == 0x34) return {{0,0,CC		,0			,0			,0			,0			,0			}}; // clean
-	if(code == 0x35) return {{0,0,0			,0			,0			,0			,0			,0			}}; // print8
+	if(code == 0x34) return {{0,0,0			,0			,0			,0			,0			,0			}}; // clean
+	if(code == 0x35) return {{0,0,SP		,0			,0			,0			,0			,0			}}; // print8
 	if(code == 0x36) return {{0,0,0			,0			,0			,0			,0			,0			}}; // jmpa
 	if(code == 0x37) return {{0,0,0			,0			,0			,0			,0			,0			}}; // jmpb
 	if(code == 0x38) return {{0,0,0			,0			,0			,0			,0			,0			}}; // laa
@@ -161,10 +169,18 @@ Unicode_t getUnicode2(const unsigned char& code){
 	if(code == 0x49) return {{0,0,0			,0			,0			,0			,0			,0			}}; // mspa
 	if(code == 0x4a) return {{0,0,0			,0			,0			,0			,0			,0			}}; // mspb
 	if(code == 0x4b) return {{0,0,0			,0			,0			,0			,0			,0			}}; // pop
-	if(code == 0x4c) return {{0,0,0			,CO			,0			,0			,0			,0			}}; // sh8a
-	if(code == 0x4d) return {{0,0,0			,CO			,0			,0			,0			,0			}}; // sh8b
+	if(code == 0x4c) return {{0,0,0			,SP			,0			,0			,0			,0			}}; // sh8a
+	if(code == 0x4d) return {{0,0,0			,SP			,0			,0			,0			,0			}}; // sh8b
 	if(code == 0x4e) return {{0,0,KI		,KO			,0			,0			,0			,0			}}; // readchr
 	if(code == 0x4f) return {{0,0,KI		,KI			,KO			,0			,0			,0			}}; // readwrd
 	if(code == 0x50) return {{0,0,KC		,WT			,0			,0			,0			,0			}}; // retype
+	if(code == 0x51) return {{0,0,GXI		,0			,0			,0			,0			,0			}}; // gsetx
+	if(code == 0x52) return {{0,0,GYI		,0			,0			,0			,0			,0			}}; // gsety
+	if(code == 0x53) return {{0,0,GRI		,0			,0			,0			,0			,0			}}; // gsetr
+	if(code == 0x54) return {{0,0,GGI		,0			,0			,0			,0			,0			}}; // gsetg
+	if(code == 0x55) return {{0,0,GBI		,0			,0			,0			,0			,0			}}; // gsetb
+	if(code == 0x56) return {{0,0,GDR		,0			,0			,0			,0			,0			}}; // gdraw
+	if(code == 0x57) return {{0,0,GCL		,0			,0			,0			,0			,0			}}; // gclear
+	if(code == 0x58) return {{0,0,GFE		,0			,0			,0			,0			,0			}}; // gfill
 	else             return {{0,0,0			,0			,0			,0			,0			,0			}};
 }

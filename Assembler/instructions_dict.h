@@ -1,4 +1,4 @@
-// 81
+// 89
 #include <unordered_map>
 std::unordered_map<std::string,unsigned int> Instructions_Dict = {
 	{ "nop" , 0x00},
@@ -82,5 +82,13 @@ std::unordered_map<std::string,unsigned int> Instructions_Dict = {
 	{ "readchr" , 0x4e},
 	{ "readwrd" , 0x4f},
 	{ "retype" , 0x50},
+	{ "gsetx" , 0x51},
+	{ "gsety" , 0x52},
+	{ "gsetr" , 0x53},
+	{ "gsetg" , 0x54},
+	{ "gsetb" , 0x55},
+	{ "gdraw" , 0x56},
+	{ "gclear" , 0x57},
+	{ "gfill" , 0x58},
 	// Add other instructions here
 };
