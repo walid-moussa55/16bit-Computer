@@ -1,0 +1,33 @@
+import "./Code/libs/stdio.tom"
+import "./Code/libs/str.tom"
+import "./Code/libs/math.tom"
+
+const TARGET_RANGE = 10;
+const TARGET_OFFSET = 1;
+
+let guessText = "  ";
+let exceptNum = 0;
+let guess = 0;
+let message1 = "Guess a number between 0 and 10 :";
+let message2 = " Too Hight, try again :";
+let message3 = " Too Low, Try again :";
+let message4 = " Correct :-)";
+
+exceptNum = rand(TARGET_OFFSET, TARGET_RANGE);
+
+printLn(message1);
+input(guessText);
+guess = atoi(guessText);
+while(guess != exceptNum){
+    if (guess < exceptNum){
+        print(guessText);
+        printLn(message3);
+    }else if(guess > exceptNum){
+        print(guessText);
+        printLn(message2);
+    }
+    input(guessText);
+    guess = atoi(guessText);
+}
+print(guessText);
+printLn(message4);

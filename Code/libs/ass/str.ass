@@ -95,6 +95,9 @@ itoa_:
     sta itoa_text_const_ptr_
     ina
     sta itoa_text_ptr_
+    lda itoa_number_
+    testa
+    jz itoa_zero_
     loop_itoa_:
         ; first char
         lda itoa_number_
@@ -181,3 +184,14 @@ itoa_:
     endLoop_makeString_:
     lda itoa_text_const_ptr_
     ret
+    itoa_zero_:
+        lda itoa_text_ptr_
+        ldvb 1
+        stba
+        ina
+        sta itoa_text_ptr_
+        ldva 48
+        ldb itoa_text_ptr_
+        stab
+        lda itoa_text_const_ptr_
+        ret

@@ -1,4 +1,13 @@
 %.lib "./Code/libs/ass/math.ass"%
+
+const RAND_MULTIPLIER = 109;
+const RAND_INCREMENT = 89;
+const RAND_MODULUS = 256;
+const RAND_STEPS = 5;
+
+let rand_state_scratch = 23;
+let rand_step_scratch = 0;
+
 function pow(number, power) {
     %
         lda func_pow_number_
@@ -17,4 +26,13 @@ function modelo(fact1, fact2) {
         stb mode_fact2_
         call mode_
     %
+}
+
+function rand(offset, range){
+    rand_step_scratch = 0;
+    while(rand_step_scratch < RAND_STEPS){
+        rand_state_scratch = modelo(rand_state_scratch * RAND_MULTIPLIER + RAND_INCREMENT, RAND_MODULUS);
+        rand_step_scratch = rand_step_scratch + 1;
+    } 
+    return modelo(rand_state_scratch, range) + offset;
 }
