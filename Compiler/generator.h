@@ -11,6 +11,7 @@ class Generator{
 private:
     Node_Prog m_ast;
     std::vector<std::string> m_opcodes;
+    std::vector<std::string> m_globalInitializers;
     std::unordered_map<std::string, std::string> m_globalSymbolTable;
     std::unordered_map<std::string, std::string> m_string_Label;
     size_t m_labelCounter;
@@ -37,7 +38,10 @@ public:
                     if(m_string_Label.find(text) == m_string_Label.end()) throw std::runtime_error("error: can't found a label to this :'"+ text + "'");
                     initialValue = m_string_Label.at(text);
                 }
-                declareGlobVar(std::get<Node_DeclareVar*>(stmt->value)->name, initialValue);
+                const Node_DeclareVar* variable = std::get<Node_DeclareVar*>(stmt->value);
+                std::string label = declareGlobVar(variable->name, initialValue);
+                m_globalInitializers.push_back("ldva " + initialValue);
+                m_globalInitializers.push_back("sta " + label);
             }else if(std::holds_alternative<Node_DeclareConst*>(stmt->value)){
                 std::string initialValue = "0";
                 if(std::get<Node_DeclareConst*>(stmt->value)->expr && std::holds_alternative<Node_Number>(std::get<Node_DeclareConst*>(stmt->value)->expr->value)){
@@ -100,6 +104,9 @@ public:
             }
         }
         m_opcodes.push_back("_start:");
+        for(const auto& initializer : m_globalInitializers){
+            m_opcodes.push_back(initializer);
+        }
         for(const auto* stmt : m_ast.stmts){
             if(!std::holds_alternative<Node_DeclareFunc*>(stmt->value) && !std::holds_alternative<Node_CustomBlock*>(stmt->value) && !std::holds_alternative<Node_DeclareTable*>(stmt->value)){
                 visitNode(stmt);

@@ -93,7 +93,7 @@ std::vector<std::optional<Token_t>> tokenize(const std::string& filename){
     int i=0;
     while(i<content.length()){
         c = content[i];
-        if(c == ' ' || c == '\n') {i++;continue;}
+        if(c == ' ' || c == '\t' || c == '\n' || c == '\r') {i++;continue;}
         else if(c == '/' && i+1 < content.length() && content[i+1] == '/'){
             i += 2;
             while(i<content.length()){
