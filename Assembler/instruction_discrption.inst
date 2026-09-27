@@ -81,3 +81,11 @@
 | readchr     | Read Character           | Reads a single character from the keyboard into the accumulator (a).                         |
 | readwrd     | Read Word                | Reads a 16-bit word from the keyboard into the accumulator (a).                              |
 | retype      | Wait for Keyboard        | Clears keyboard input and halts/waits for new input.                                         |
+| gsetx       | Set Graphics X           | Sets the graphics drawing X coordinate from the value in accumulator (a).                   |
+| gsety       | Set Graphics Y           | Sets the graphics drawing Y coordinate from the value in accumulator (a).                   |
+| gsetr       | Set Red Channel          | Sets the graphics red color component from the value in accumulator (a).                    |
+| gsetg       | Set Green Channel        | Sets the graphics green color component from the value in accumulator (a).                  |
+| gsetb       | Set Blue Channel         | Sets the graphics blue color component from the value in accumulator (a).                   |
+| gdraw       | Draw Graphics Pixel      | Draws a pixel at the selected X/Y coordinate using the selected RGB color.                   |
+| gclear      | Clear Graphics Display   | Clears the graphics display.                                                                |
+| gfill       | Fill Graphics Display    | Fills the graphics display with the currently selected RGB color.                           |
